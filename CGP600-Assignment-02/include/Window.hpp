@@ -4,9 +4,11 @@
 
 class Window
 {
-private:
-    HRESULT initialiseWindow(HINSTANCE instance, int commandShow);
-public:
-    Window(HINSTANCE instance, int commandShow);
-    bool pollEvent(MSG* message);
+    private:
+        HINSTANCE handleInstance = NULL;
+        HWND window = NULL;
+        static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+    public:
+        bool pollMessage(MSG* message);
+        HRESULT create(HINSTANCE instance, int commandShow, char* name);
 };
