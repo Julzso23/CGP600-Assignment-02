@@ -37,5 +37,5 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
         }
     }
 
-    return message.wParam;
+    return (int)message.wParam;
 }
