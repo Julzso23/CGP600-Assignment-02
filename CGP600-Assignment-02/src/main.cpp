@@ -1,11 +1,19 @@
 #include "Window.hpp"
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <stdio.h>
 
 using namespace DirectX;
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
+#ifdef _DEBUG
+    // Give us a console in debug mode
+    AllocConsole(); // Create the console
+    FILE* file;
+    freopen_s(&file, "CONOUT$", "wb", stdout); // Pipe stdout into the console
+#endif
+
     Window window;
     if (FAILED(window.create(instance, commandShow, "CGP600 Assignment 02\0")))
     {
