@@ -236,6 +236,52 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
         {
             if (swapChain)
             {
+                immediateContext->OMSetRenderTargets(0, 0, 0);
+                backBufferRTView->Release();
+
+                HRESULT result = swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+                if (FAILED(result))
+                {
+                    OutputDebugString("#### Failed to resize buffers! ####");
+                    return 0;
+                }
+
+                ID3D11Texture2D* backBufferTexture;
+                result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
+
+                if (FAILED(result))
+                {
+                    OutputDebugString("#### Failed to create back buffer texture! ####\n");
+                    return result;
+                }
+
+                result = device->CreateRenderTargetView(backBufferTexture, NULL, &backBufferRTView);
+
+                backBufferTexture->Release();
+
+                if (FAILED(result))
+                {
+                    OutputDebugString("#### Failed to create render target view! ####\n");
+                    return result;
+                }
+
+                immediateContext->OMSetRenderTargets(1, &backBufferRTView, NULL);
+
+                RECT rect;
+                GetClientRect(window, &rect);
+                UINT width = rect.right - rect.left;
+                UINT height = rect.bottom - rect.top;
+
+                D3D11_VIEWPORT viewport;
+                viewport.TopLeftX = 0;
+                viewport.TopLeftY = 0;
+                viewport.Width = (float)width;
+                viewport.Height = (float)height;
+                viewport.MinDepth = 0.f;
+                viewport.MaxDepth = 1.f;
+
+                immediateContext->RSSetViewports(1, &viewport);
             }
             break;
         }
