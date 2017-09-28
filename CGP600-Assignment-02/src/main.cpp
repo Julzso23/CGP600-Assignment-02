@@ -13,7 +13,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
     Window window;
     if (FAILED(window.create(instance, commandShow, "CGP600 Assignment 02\0")))
     {
-        OutputDebugString("Failed to create window!");
+        OutputDebugString("#### Failed to create window! ####\n");
         return 1;
     }
 
@@ -32,6 +32,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
                 }
             }
         }
+
+        window.renderFrame();
     }
 
     return (int)message.wParam;

@@ -100,14 +100,50 @@ HRESULT Window::initialiseD3D()
 
     if (FAILED(result))
     {
-        OutputDebugString("Failed to initialise Direct3D!");
+        OutputDebugString("#### Failed to initialise Direct3D! ####\n");
+        return result;
     }
 
-    return result;
+    ID3D11Texture2D* backBufferTexture;
+    result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create back buffer texture! ####\n");
+        return result;
+    }
+
+    result = device->CreateRenderTargetView(backBufferTexture, NULL, &backBufferRTView);
+
+    backBufferTexture->Release();
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create render target view! ####\n");
+        return result;
+    }
+
+    immediateContext->OMSetRenderTargets(1, &backBufferRTView, NULL);
+
+    D3D11_VIEWPORT viewport;
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = (float)width;
+    viewport.Height = (float)height;
+    viewport.MinDepth = 0.f;
+    viewport.MaxDepth = 1.f;
+
+    immediateContext->RSSetViewports(1, &viewport);
+
+    return S_OK;
 }
 
 void Window::shutdownD3D()
 {
+    if (backBufferRTView)
+    {
+        backBufferRTView->Release();
+    }
     if (swapChain)
     {
         swapChain->Release();
@@ -182,4 +218,14 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
     ShowWindow(window, commandShow);
 
     return initialiseD3D();
+}
+
+void Window::renderFrame()
+{
+    float rgbaClearColour[4] = { 0.1f, 0.2f, 0.6f, 1.f };
+    immediateContext->ClearRenderTargetView(backBufferRTView, rgbaClearColour);
+
+    // Render here
+
+    swapChain->Present(0, 0);
 }
