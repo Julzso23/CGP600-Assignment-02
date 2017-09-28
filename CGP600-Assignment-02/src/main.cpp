@@ -1,9 +1,5 @@
 #include "Window.hpp"
-#include <d3d11.h>
-#include <DirectXMath.h>
 #include <stdio.h>
-
-using namespace DirectX;
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
@@ -17,6 +13,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
     Window window;
     if (FAILED(window.create(instance, commandShow, "CGP600 Assignment 02\0")))
     {
+        OutputDebugString("Failed to create window!");
         return 1;
     }
 
