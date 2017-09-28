@@ -14,6 +14,7 @@ class Window
         ID3D11DeviceContext* immediateContext = NULL;
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
+        const float backgroundClearColour[4] = { 0.f, 0.f, 0.f };
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();
@@ -23,4 +24,5 @@ class Window
         bool pollMessage(MSG* message);
         HRESULT create(HINSTANCE instance, int commandShow, char* name);
         void renderFrame();
+        LRESULT eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam);
 };

@@ -3,7 +3,7 @@
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
-#ifdef _DEBUG
+#if _DEBUG
     // Give us a console in debug mode
     AllocConsole(); // Create the console
     FILE* file;

@@ -1,34 +1,17 @@
 #include "Window.hpp"
+#include <stdio.h>
 
 LRESULT Window::eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    PAINTSTRUCT paintStruct;
-    HDC hdc;
-
-    switch (message)
+    Window* windowPointer = (Window*)GetWindowLongPtr(window, GWLP_USERDATA);
+    if (windowPointer)
     {
-        case WM_PAINT:
-        {
-            hdc = BeginPaint(window, &paintStruct);
-            EndPaint(window, &paintStruct);
-            break;
-        }
-        case WM_DESTROY:
-        {
-            PostQuitMessage(0);
-            break;
-        }
-        case WM_KEYDOWN:
-        {
-            break;
-        }
-        default:
-        {
-            return DefWindowProc(window, message, wParam, lParam);
-        }
+        return windowPointer->eventCallbackInternal(message, wParam, lParam);
     }
-
-    return 0;
+    else
+    {
+        return DefWindowProc(window, message, wParam, lParam);
+    }
 }
 
 HRESULT Window::initialiseD3D()
@@ -215,6 +198,8 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
         return E_FAIL;
     }
 
+    SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)this);
+
     ShowWindow(window, commandShow);
 
     return initialiseD3D();
@@ -222,10 +207,43 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::renderFrame()
 {
-    float rgbaClearColour[4] = { 0.1f, 0.2f, 0.6f, 1.f };
-    immediateContext->ClearRenderTargetView(backBufferRTView, rgbaClearColour);
+    immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
     // Render here
 
     swapChain->Present(0, 0);
+}
+
+LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    PAINTSTRUCT paintStruct;
+    HDC hdc;
+
+    switch (message)
+    {
+        case WM_PAINT:
+        {
+            hdc = BeginPaint(window, &paintStruct);
+            EndPaint(window, &paintStruct);
+            break;
+        }
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            break;
+        }
+        case WM_SIZE:
+        {
+            if (swapChain)
+            {
+            }
+            break;
+        }
+        default:
+        {
+            return DefWindowProc(window, message, wParam, lParam);
+        }
+    }
+
+    return 0;
 }
