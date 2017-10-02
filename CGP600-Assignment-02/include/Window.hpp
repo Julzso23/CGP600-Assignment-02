@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <d3d11.h>
+#include "Vertex.hpp"
 
 class Window
 {
@@ -15,9 +16,14 @@ class Window
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
         const float backgroundClearColour[4] = { 0.f, 0.f, 0.f };
+        ID3D11Buffer* vertexBuffer;
+        ID3D11VertexShader* vertexShader;
+        ID3D11PixelShader* pixelShader;
+        ID3D11InputLayout* inputLayout;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();
+        HRESULT initialiseGraphics();
         void shutdownD3D();
     public:
         ~Window();

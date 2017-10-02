@@ -1,5 +1,8 @@
 #include "Window.hpp"
 #include <stdio.h>
+#include <d3dcompiler.h>
+
+using namespace DirectX;
 
 LRESULT Window::eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -121,24 +124,112 @@ HRESULT Window::initialiseD3D()
     return S_OK;
 }
 
+HRESULT Window::initialiseGraphics()
+{
+    HRESULT result;
+
+    Vertex vertices[] = {
+        { XMFLOAT3(0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+    };
+
+    D3D11_BUFFER_DESC bufferDescription;
+    ZeroMemory(&bufferDescription, sizeof(bufferDescription));
+    bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDescription.ByteWidth = sizeof(Vertex) * 3;
+    bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    result = device->CreateBuffer(&bufferDescription, NULL, &vertexBuffer);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create vertex buffer! ####\n");
+        return result;
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+    immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+    memcpy(mappedSubresource.pData, vertices, sizeof(Vertex));
+    immediateContext->Unmap(vertexBuffer, NULL);
+
+    ID3DBlob* vertShader;
+    ID3DBlob* pixShader;
+    ID3DBlob* error;
+
+    // Vertex shader compile
+    result = D3DCompileFromFile(L"shaders/shaders.hlsl", 0, 0, "VShader", "vs_4_0", 0, 0, &vertShader, &error);
+    if (error != 0)
+    {
+        OutputDebugString((char*)error->GetBufferPointer());
+        error->Release();
+        if (FAILED(result))
+        {
+            OutputDebugString("#### Failed to compile vertex shader! ####\n");
+            return result;
+        }
+    }
+
+    // Pixel shader compile
+    result = D3DCompileFromFile(L"shaders/shaders.hlsl", 0, 0, "PShader", "ps_4_0", 0, 0, &pixShader, &error);
+    if (error != 0)
+    {
+        OutputDebugString((char*)error->GetBufferPointer());
+        error->Release();
+        if (FAILED(result))
+        {
+            OutputDebugString("#### Failed to compile pixel shader! ####\n");
+            return result;
+        }
+    }
+
+    // Vertex shader create
+    result = device->CreateVertexShader(vertShader->GetBufferPointer(), vertShader->GetBufferSize(), NULL, &vertexShader);
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create vertex shader! ####\n");
+        return result;
+    }
+
+    // Pixel shader create
+    result = device->CreatePixelShader(pixShader->GetBufferPointer(), pixShader->GetBufferSize(), NULL, &pixelShader);
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create pixel shader! ####\n");
+        return result;
+    }
+
+    immediateContext->VSSetShader(vertexShader, 0, 0);
+    immediateContext->PSSetShader(pixelShader, 0, 0);
+
+    D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
+    result = device->CreateInputLayout(inputElementDescriptions, 2, vertShader->GetBufferPointer(), vertShader->GetBufferSize(), &inputLayout);
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create input layout! ####\n");
+        return result;
+    }
+
+    immediateContext->IASetInputLayout(inputLayout);
+
+    return S_OK;
+}
+
 void Window::shutdownD3D()
 {
-    if (backBufferRTView)
-    {
-        backBufferRTView->Release();
-    }
-    if (swapChain)
-    {
-        swapChain->Release();
-    }
-    if (immediateContext)
-    {
-        immediateContext->Release();
-    }
-    if (device)
-    {
-        device->Release();
-    }
+    if (vertexBuffer) vertexBuffer->Release();
+    if (inputLayout) inputLayout->Release();
+    if (vertexShader) vertexShader->Release();
+    if (pixelShader) pixelShader->Release();
+    if (backBufferRTView) backBufferRTView->Release();
+    if (swapChain) swapChain->Release();
+    if (immediateContext) immediateContext->Release();
+    if (device) device->Release();
 }
 
 Window::~Window()
@@ -202,14 +293,30 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
     ShowWindow(window, commandShow);
 
-    return initialiseD3D();
+    HRESULT result = initialiseD3D();
+    if (FAILED(result))
+    {
+        return result;
+    }
+
+    result = initialiseGraphics();
+    if (FAILED(result))
+    {
+        return result;
+    }
+
+    return S_OK;
 }
 
 void Window::renderFrame()
 {
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
-    // Render here
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    immediateContext->IAGetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    immediateContext->Draw(3, 0);
 
     swapChain->Present(0, 0);
 }
