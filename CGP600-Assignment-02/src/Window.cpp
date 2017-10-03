@@ -129,9 +129,9 @@ HRESULT Window::initialiseGraphics()
     HRESULT result;
 
     Vertex vertices[] = {
-        { XMFLOAT3(0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(0.9f, 0.9f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.9f, -0.9f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.9f, -0.9f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC bufferDescription;
@@ -314,11 +314,11 @@ void Window::renderFrame()
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    immediateContext->IAGetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     immediateContext->Draw(3, 0);
 
-    swapChain->Present(0, 0);
+    swapChain->Present(1, 0);
 }
 
 LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam)
