@@ -15,7 +15,7 @@ class Window
         ID3D11DeviceContext* immediateContext = NULL;
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
-        const float backgroundClearColour[4] = { 0.f, 0.f, 0.f };
+        float* backgroundClearColour;
         ID3D11Buffer* vertexBuffer;
         ID3D11VertexShader* vertexShader;
         ID3D11PixelShader* pixelShader;

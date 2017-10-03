@@ -129,9 +129,9 @@ HRESULT Window::initialiseGraphics()
     HRESULT result;
 
     Vertex vertices[] = {
-        { XMFLOAT3(0.9f, 0.9f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.9f, -0.9f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.9f, -0.9f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC bufferDescription;
@@ -151,15 +151,20 @@ HRESULT Window::initialiseGraphics()
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
     immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, vertices, sizeof(Vertex));
+    memcpy(mappedSubresource.pData, vertices, sizeof(vertices));
     immediateContext->Unmap(vertexBuffer, NULL);
 
-    ID3DBlob* vertShader;
-    ID3DBlob* pixShader;
-    ID3DBlob* error;
+    ID3DBlob* vertShader = nullptr;
+    ID3DBlob* pixShader = nullptr;
+    ID3DBlob* error = nullptr;
+
+    UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    flags |= D3DCOMPILE_DEBUG;
+#endif
 
     // Vertex shader compile
-    result = D3DCompileFromFile(L"shaders/shaders.hlsl", 0, 0, "VShader", "vs_4_0", 0, 0, &vertShader, &error);
+    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VShader", "vs_5_0", flags, NULL, &vertShader, &error);
     if (error != 0)
     {
         OutputDebugString((char*)error->GetBufferPointer());
@@ -172,7 +177,7 @@ HRESULT Window::initialiseGraphics()
     }
 
     // Pixel shader compile
-    result = D3DCompileFromFile(L"shaders/shaders.hlsl", 0, 0, "PShader", "ps_4_0", 0, 0, &pixShader, &error);
+    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PShader", "ps_5_0", flags, NULL, &pixShader, &error);
     if (error != 0)
     {
         OutputDebugString((char*)error->GetBufferPointer());
@@ -235,6 +240,7 @@ void Window::shutdownD3D()
 Window::~Window()
 {
     shutdownD3D();
+    delete[] backgroundClearColour;
 }
 
 bool Window::pollMessage(MSG* message)
@@ -254,6 +260,8 @@ bool Window::pollMessage(MSG* message)
 
 HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 {
+    backgroundClearColour = new float[4] { 0.f, 0.f, 0.f, 1.f };
+
     WNDCLASSEX windowClass = { 0 };
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -315,7 +323,7 @@ void Window::renderFrame()
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     immediateContext->Draw(3, 0);
 
     swapChain->Present(1, 0);
