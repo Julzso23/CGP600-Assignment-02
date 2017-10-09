@@ -124,6 +124,7 @@
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ConstantBuffers.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
     <ClInclude Include="include\Window.hpp" />
   </ItemGroup>

@@ -134,20 +134,40 @@ HRESULT Window::initialiseGraphics()
         { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
-    D3D11_BUFFER_DESC bufferDescription;
-    ZeroMemory(&bufferDescription, sizeof(bufferDescription));
-    bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    bufferDescription.ByteWidth = sizeof(Vertex) * 3;
-    bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    D3D11_BUFFER_DESC vertexBufferDescription;
+    ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
+    vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
+    vertexBufferDescription.ByteWidth = sizeof(Vertex) * 3;
+    vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    result = device->CreateBuffer(&bufferDescription, NULL, &vertexBuffer);
+    result = device->CreateBuffer(&vertexBufferDescription, NULL, &vertexBuffer);
 
     if (FAILED(result))
     {
         OutputDebugString("#### Failed to create vertex buffer! ####\n");
         return result;
     }
+
+    D3D11_BUFFER_DESC constantBuffer0Description;
+    ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
+    constantBuffer0Description.Usage = D3D11_USAGE_DEFAULT;
+    constantBuffer0Description.ByteWidth = 16;
+    constantBuffer0Description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+    result = device->CreateBuffer(&constantBuffer0Description, NULL, &constantBuffer0);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create constant buffer 0! ####\n");
+        return result;
+    }
+
+    constantBuffer0Values.redAmount = 0.5f;
+    constantBuffer0Values.scale = 0.5f;
+
+    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
+    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
     immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
@@ -227,6 +247,7 @@ HRESULT Window::initialiseGraphics()
 
 void Window::shutdownD3D()
 {
+    if (constantBuffer0) constantBuffer0->Release();
     if (vertexBuffer) vertexBuffer->Release();
     if (inputLayout) inputLayout->Release();
     if (vertexShader) vertexShader->Release();
@@ -316,6 +337,10 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
     return S_OK;
 }
 
+void Window::update()
+{
+}
+
 void Window::renderFrame()
 {
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
@@ -397,6 +422,29 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                 viewport.MaxDepth = 1.f;
 
                 immediateContext->RSSetViewports(1, &viewport);
+            }
+            break;
+        }
+        case WM_KEYDOWN:
+        {
+            switch (wParam)
+            {
+                case VK_RIGHT:
+                {
+                    constantBuffer0Values.redAmount += 0.1f;
+                    constantBuffer0Values.scale += 0.1f;
+                    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
+                    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+                    break;
+                }
+                case VK_LEFT:
+                {
+                    constantBuffer0Values.redAmount -= 0.1f;
+                    constantBuffer0Values.scale -= 0.1f;
+                    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
+                    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+                    break;
+                }
             }
             break;
         }

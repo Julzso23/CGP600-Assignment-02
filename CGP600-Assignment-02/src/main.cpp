@@ -33,6 +33,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
             }
         }
 
+        window.update();
         window.renderFrame();
     }
 

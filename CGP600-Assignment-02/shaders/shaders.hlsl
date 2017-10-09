@@ -1,7 +1,8 @@
 cbuffer CBuffer0
 {
-    float redFraction;
-    float3 packing;
+    float redAmount;
+    float scale;
+    float2 packing;
 };
 
 struct VOut
@@ -12,8 +13,13 @@ struct VOut
 
 VOut VShader(float4 position : POSITION, float4 color : COLOR)
 {
+    color.r *= redAmount;
+
+    position.x *= scale;
+    position.y *= scale;
+    position.z *= scale;
+
     VOut output;
-    color.r *= redFraction;
     output.position = position;
     output.color = color;
     return output;
