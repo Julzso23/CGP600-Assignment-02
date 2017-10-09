@@ -129,15 +129,18 @@ HRESULT Window::initialiseGraphics()
     HRESULT result;
 
     Vertex vertices[] = {
-        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
         { XMFLOAT3(0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC vertexBufferDescription;
     ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
     vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    vertexBufferDescription.ByteWidth = sizeof(Vertex) * 3;
+    vertexBufferDescription.ByteWidth = sizeof(vertices);
     vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
@@ -349,7 +352,7 @@ void Window::renderFrame()
     UINT offset = 0;
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    immediateContext->Draw(3, 0);
+    immediateContext->Draw(6, 0);
 
     swapChain->Present(1, 0);
 }
