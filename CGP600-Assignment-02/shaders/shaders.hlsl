@@ -1,8 +1,6 @@
 cbuffer CBuffer0
 {
-    float redAmount;
-    float scale;
-    float2 packing;
+    matrix worldViewProjection;
 };
 
 struct VOut
@@ -13,14 +11,8 @@ struct VOut
 
 VOut VShader(float4 position : POSITION, float4 color : COLOR)
 {
-    color.r *= redAmount;
-
-    position.x *= scale;
-    position.y *= scale;
-    position.z *= scale;
-
     VOut output;
-    output.position = position;
+    output.position = mul(worldViewProjection, position);
     output.color = color;
     return output;
 }

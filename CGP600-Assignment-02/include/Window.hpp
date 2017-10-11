@@ -4,6 +4,7 @@
 #include <d3d11.h>
 #include "Vertex.hpp"
 #include "ConstantBuffers.hpp"
+#include "Camera.hpp"
 
 class Window
 {
@@ -23,6 +24,7 @@ class Window
         ID3D11InputLayout* inputLayout;
         ID3D11Buffer* constantBuffer0;
         ConstantBuffer0 constantBuffer0Values;
+        Camera camera;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

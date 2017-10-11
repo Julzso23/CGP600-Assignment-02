@@ -120,11 +120,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ConstantBuffers.hpp" />
+    <ClInclude Include="include\Camera.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
     <ClInclude Include="include\Window.hpp" />
   </ItemGroup>

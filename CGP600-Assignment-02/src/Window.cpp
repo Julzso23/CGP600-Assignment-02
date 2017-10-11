@@ -129,12 +129,12 @@ HRESULT Window::initialiseGraphics()
     HRESULT result;
 
     Vertex vertices[] = {
-        { XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
         { XMFLOAT3(0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
         { XMFLOAT3(-0.5f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC vertexBufferDescription;
@@ -155,7 +155,7 @@ HRESULT Window::initialiseGraphics()
     D3D11_BUFFER_DESC constantBuffer0Description;
     ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
     constantBuffer0Description.Usage = D3D11_USAGE_DEFAULT;
-    constantBuffer0Description.ByteWidth = 16;
+    constantBuffer0Description.ByteWidth = 64;
     constantBuffer0Description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
     result = device->CreateBuffer(&constantBuffer0Description, NULL, &constantBuffer0);
@@ -166,11 +166,9 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
-    constantBuffer0Values.redAmount = 0.5f;
-    constantBuffer0Values.scale = 0.5f;
-
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+    camera.setFieldOfView(60.f);
+    camera.setClippingPlanes(0.1f, 100.f);
+    camera.setPosition({ 0.f, 0.f, -2.f });
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
     immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
@@ -342,10 +340,29 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
+    XMVECTOR rotation = camera.getRotation();
+    rotation.vector4_f32[1] += 0.5f;
+    camera.setRotation(rotation);
 }
 
 void Window::renderFrame()
 {
+    RECT rect;
+    GetClientRect(window, &rect);
+    UINT width = rect.right - rect.left;
+    width = width != 0 ? width : 1;
+    UINT height = rect.bottom - rect.top;
+    height = height != 0 ? height : 1;
+
+    camera.setAspectRatio(width, height);
+
+    XMMATRIX view;
+    view = XMMatrixIdentity();
+
+    constantBuffer0Values.worldViewProjection = camera.getWorldMatrix() * view * camera.getProjectionMatrix();
+    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
+    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
     UINT stride = sizeof(Vertex);
@@ -425,29 +442,6 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                 viewport.MaxDepth = 1.f;
 
                 immediateContext->RSSetViewports(1, &viewport);
-            }
-            break;
-        }
-        case WM_KEYDOWN:
-        {
-            switch (wParam)
-            {
-                case VK_RIGHT:
-                {
-                    constantBuffer0Values.redAmount += 0.1f;
-                    constantBuffer0Values.scale += 0.1f;
-                    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
-                    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-                    break;
-                }
-                case VK_LEFT:
-                {
-                    constantBuffer0Values.redAmount -= 0.1f;
-                    constantBuffer0Values.scale -= 0.1f;
-                    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
-                    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-                    break;
-                }
             }
             break;
         }
