@@ -129,12 +129,21 @@ HRESULT Window::initialiseGraphics()
     HRESULT result;
 
     Vertex vertices[] = {
-        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, 0.5f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC vertexBufferDescription;
@@ -340,9 +349,13 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
-    XMVECTOR rotation = camera.getRotation();
-    rotation.vector4_f32[1] += 0.5f;
+    /*XMVECTOR rotation = camera.getRotation();
+    rotation.vector4_f32[1] += 0.01f;
     camera.setRotation(rotation);
+
+    XMVECTOR position = camera.getPosition();
+    position.vector4_f32[0] -= 0.01f;
+    camera.setPosition(position);*/
 }
 
 void Window::renderFrame()
