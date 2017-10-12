@@ -25,6 +25,7 @@ class Window
         ID3D11Buffer* constantBuffer0;
         ConstantBuffer0 constantBuffer0Values;
         Camera camera;
+        ID3D11DepthStencilView* zBuffer;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

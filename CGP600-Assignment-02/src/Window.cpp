@@ -109,7 +109,35 @@ HRESULT Window::initialiseD3D()
         return result;
     }
 
-    immediateContext->OMSetRenderTargets(1, &backBufferRTView, NULL);
+    D3D11_TEXTURE2D_DESC textureDescription;
+    ZeroMemory(&textureDescription, sizeof(textureDescription));
+    textureDescription.Width = width;
+    textureDescription.Height = height;
+    textureDescription.ArraySize = 1;
+    textureDescription.MipLevels = 1;
+    textureDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    textureDescription.SampleDesc.Count = swapChainDescription.SampleDesc.Count;
+    textureDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    textureDescription.Usage = D3D11_USAGE_DEFAULT;
+
+    ID3D11Texture2D* zBufferTexture;
+    result = device->CreateTexture2D(&textureDescription, NULL, &zBufferTexture);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create Z buffer texture! ####\n");
+        return result;
+    }
+    
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDescription;
+    ZeroMemory(&depthStencilDescription, sizeof(depthStencilDescription));
+    depthStencilDescription.Format = textureDescription.Format;
+    depthStencilDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+    device->CreateDepthStencilView(zBufferTexture, &depthStencilDescription, &zBuffer);
+    zBufferTexture->Release();
+
+    immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
 
     D3D11_VIEWPORT viewport;
     viewport.TopLeftX = 0;
@@ -143,7 +171,24 @@ HRESULT Window::initialiseGraphics()
 
         { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
         { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+
+        { XMFLOAT3(-0.5f, -0.5f, -1.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, -0.5f, -1.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(0.5f, -0.5f, -1.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+
+        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
+        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
+        { XMFLOAT3(-0.5f, -0.5f, -1.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
     };
 
     D3D11_BUFFER_DESC vertexBufferDescription;
@@ -257,6 +302,7 @@ HRESULT Window::initialiseGraphics()
 
 void Window::shutdownD3D()
 {
+    if (zBuffer) zBuffer->Release();
     if (constantBuffer0) constantBuffer0->Release();
     if (vertexBuffer) vertexBuffer->Release();
     if (inputLayout) inputLayout->Release();
@@ -380,11 +426,13 @@ void Window::renderFrame()
 
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
+    immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    immediateContext->Draw(12, 0);
+    immediateContext->Draw(24, 0);
 
     swapChain->Present(1, 0);
 }
@@ -411,6 +459,11 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
         {
             if (swapChain)
             {
+                RECT rect;
+                GetClientRect(window, &rect);
+                UINT width = rect.right - rect.left;
+                UINT height = rect.bottom - rect.top;
+
                 immediateContext->OMSetRenderTargets(0, 0, 0);
                 backBufferRTView->Release();
 
@@ -442,11 +495,6 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                 }
 
                 immediateContext->OMSetRenderTargets(1, &backBufferRTView, NULL);
-
-                RECT rect;
-                GetClientRect(window, &rect);
-                UINT width = rect.right - rect.left;
-                UINT height = rect.bottom - rect.top;
 
                 D3D11_VIEWPORT viewport;
                 viewport.TopLeftX = 0;
