@@ -349,13 +349,15 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
-    /*XMVECTOR rotation = camera.getRotation();
-    rotation.vector4_f32[1] += 0.01f;
+    XMVECTOR rotation = camera.getRotation();
+    rotation.vector4_f32[1] += 0.05f;
     camera.setRotation(rotation);
 
-    XMVECTOR position = camera.getPosition();
-    position.vector4_f32[0] -= 0.01f;
-    camera.setPosition(position);*/
+    XMVECTOR position;
+    position.vector4_f32[0] = -2.f * sin(XMConvertToRadians(rotation.vector4_f32[1]));
+    position.vector4_f32[1] = 0.f;
+    position.vector4_f32[2] = -2.f * cos(XMConvertToRadians(rotation.vector4_f32[1]));
+    camera.setPosition(position);
 }
 
 void Window::renderFrame()
@@ -382,7 +384,7 @@ void Window::renderFrame()
     UINT offset = 0;
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    immediateContext->Draw(6, 0);
+    immediateContext->Draw(12, 0);
 
     swapChain->Present(1, 0);
 }
