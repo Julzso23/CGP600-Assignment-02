@@ -494,7 +494,7 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                     return result;
                 }
 
-                immediateContext->OMSetRenderTargets(1, &backBufferRTView, NULL);
+                immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
 
                 D3D11_VIEWPORT viewport;
                 viewport.TopLeftX = 0;
