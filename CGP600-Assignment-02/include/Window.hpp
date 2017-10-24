@@ -5,6 +5,7 @@
 #include "Vertex.hpp"
 #include "ConstantBuffers.hpp"
 #include "Camera.hpp"
+#include "Mesh.hpp"
 
 class Window
 {
@@ -18,7 +19,6 @@ class Window
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
         float* backgroundClearColour;
-        ID3D11Buffer* vertexBuffer;
         ID3D11VertexShader* vertexShader;
         ID3D11PixelShader* pixelShader;
         ID3D11InputLayout* inputLayout;
@@ -26,6 +26,7 @@ class Window
         ConstantBuffer0 constantBuffer0Values;
         Camera camera;
         ID3D11DepthStencilView* zBuffer;
+        Mesh block;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

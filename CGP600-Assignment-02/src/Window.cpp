@@ -156,53 +156,11 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    Vertex vertices[] = {
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
+    block.loadFromFile("models/monkey.obj");
 
-        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-        { XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-        { XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-
-        { XMFLOAT3(-0.5f, -0.5f, -1.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, -0.5f, -1.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-        { XMFLOAT3(0.5f, -0.5f, -1.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-        { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-
-        { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-        { XMFLOAT3(0.f, 0.5f, -1.f), XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-        { XMFLOAT3(-0.5f, -0.5f, -1.5f), XMFLOAT4(0.f, 0.f, 1.f, 1.f) }
-    };
-
-    D3D11_BUFFER_DESC vertexBufferDescription;
-    ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
-    vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    vertexBufferDescription.ByteWidth = sizeof(vertices);
-    vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    result = device->CreateBuffer(&vertexBufferDescription, NULL, &vertexBuffer);
-
+    result = block.initialiseVertexBuffer(device, immediateContext);
     if (FAILED(result))
     {
-        OutputDebugString("#### Failed to create vertex buffer! ####\n");
         return result;
     }
 
@@ -223,11 +181,6 @@ HRESULT Window::initialiseGraphics()
     camera.setFieldOfView(60.f);
     camera.setClippingPlanes(0.1f, 100.f);
     camera.setPosition({ 0.f, 0.f, -2.f });
-
-    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-    immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, vertices, sizeof(vertices));
-    immediateContext->Unmap(vertexBuffer, NULL);
 
     ID3DBlob* vertShader = nullptr;
     ID3DBlob* pixShader = nullptr;
@@ -304,7 +257,6 @@ void Window::shutdownD3D()
 {
     if (zBuffer) zBuffer->Release();
     if (constantBuffer0) constantBuffer0->Release();
-    if (vertexBuffer) vertexBuffer->Release();
     if (inputLayout) inputLayout->Release();
     if (vertexShader) vertexShader->Release();
     if (pixelShader) pixelShader->Release();
@@ -417,19 +369,21 @@ void Window::renderFrame()
 
     camera.setAspectRatio(width, height);
 
-    constantBuffer0Values.worldViewProjection = camera.getViewMatrix();
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
+    constantBuffer0Values.worldViewProjection = block.getTransform() * camera.getViewMatrix();
+    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
+    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
+    UINT vertexCount;
+    ID3D11Buffer* vertexBuffer = block.getVertexBuffer(&vertexCount);
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    immediateContext->Draw(24, 0);
+    immediateContext->Draw(vertexCount, 0);
 
     swapChain->Present(1, 0);
 }
