@@ -1,18 +1,15 @@
 #include "Camera.hpp"
 
-XMMATRIX Camera::getProjectionMatrix() const
+XMMATRIX Camera::getViewMatrix() const
 {
-    return XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), aspectRatio, nearClippingPlane, farClippingPlane);
-}
+    XMMATRIX view = XMMatrixRotationZ(XMConvertToRadians(rotation.vector4_f32[2]));
+    view *= XMMatrixRotationX(XMConvertToRadians(rotation.vector4_f32[0]));
+    view *= XMMatrixRotationY(XMConvertToRadians(rotation.vector4_f32[1]));
+    view *= XMMatrixTranslation(position.vector4_f32[0], position.vector4_f32[1], position.vector4_f32[2]);
+    view = XMMatrixInverse(NULL, view);
+    view *= XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), aspectRatio, nearClippingPlane, farClippingPlane);
 
-XMMATRIX Camera::getWorldMatrix() const
-{
-    XMMATRIX world = XMMatrixRotationZ(XMConvertToRadians(rotation.vector4_f32[2]));
-    world *= XMMatrixRotationX(XMConvertToRadians(rotation.vector4_f32[0]));
-    world *= XMMatrixRotationY(XMConvertToRadians(rotation.vector4_f32[1]));
-    world *= XMMatrixTranslation(position.vector4_f32[0], position.vector4_f32[1], position.vector4_f32[2]);
-
-    return XMMatrixInverse(NULL, world);
+    return view;
 }
 
 void Camera::setFieldOfView(float value)

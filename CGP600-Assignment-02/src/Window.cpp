@@ -400,9 +400,9 @@ void Window::update()
     camera.setRotation(rotation);
 
     XMVECTOR position;
-    position.vector4_f32[0] = -2.f * sin(XMConvertToRadians(rotation.vector4_f32[1]));
+    position.vector4_f32[0] = -2.f * (float)sin(XMConvertToRadians(rotation.vector4_f32[1]));
     position.vector4_f32[1] = 0.f;
-    position.vector4_f32[2] = -2.f * cos(XMConvertToRadians(rotation.vector4_f32[1]));
+    position.vector4_f32[2] = -2.f * (float)cos(XMConvertToRadians(rotation.vector4_f32[1]));
     camera.setPosition(position);
 }
 
@@ -417,10 +417,7 @@ void Window::renderFrame()
 
     camera.setAspectRatio(width, height);
 
-    XMMATRIX view;
-    view = XMMatrixIdentity();
-
-    constantBuffer0Values.worldViewProjection = camera.getWorldMatrix() * view * camera.getProjectionMatrix();
+    constantBuffer0Values.worldViewProjection = camera.getViewMatrix();
     immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
 

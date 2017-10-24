@@ -18,8 +18,7 @@ class Camera
 
         XMMATRIX projection, world;
     public:
-        XMMATRIX getProjectionMatrix() const;
-        XMMATRIX getWorldMatrix() const;
+        XMMATRIX getViewMatrix() const;
 
         void setFieldOfView(float value);
         float getFieldOfView() const;
