@@ -1,6 +1,7 @@
 #include "Window.hpp"
 #include <stdio.h>
 #include <d3dcompiler.h>
+#include <windowsx.h>
 
 using namespace DirectX;
 
@@ -157,7 +158,7 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    block.loadFromFile("models/block.obj");
+    block.loadFromFile("models/tree.obj");
 
     result = block.loadTexture(device, immediateContext, L"textures/block.bmp");
     if (FAILED(result))
@@ -188,6 +189,10 @@ HRESULT Window::initialiseGraphics()
     camera.setFieldOfView(60.f);
     camera.setClippingPlanes(0.1f, 100.f);
     camera.setPosition({ 0.f, 0.f, -2.f });
+
+    RECT rect;
+    GetClientRect(window, &rect);
+    camera.setAspectRatio(rect.right - rect.left, rect.bottom - rect.top);
 
     ID3DBlob* vertShader = nullptr;
     ID3DBlob* pixShader = nullptr;
@@ -280,6 +285,8 @@ HRESULT Window::initialiseGraphics()
         OutputDebugString("#### Failed to create sampler state! ####");
         return result;
     }
+
+    ShowCursor(false);
 
     return S_OK;
 }
@@ -378,7 +385,7 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
-    XMVECTOR rotation = camera.getRotation();
+    /*XMVECTOR rotation = camera.getRotation();
     rotation.vector4_f32[1] += 0.05f;
     camera.setRotation(rotation);
 
@@ -386,20 +393,11 @@ void Window::update()
     position.vector4_f32[0] = -2.f * (float)sin(XMConvertToRadians(rotation.vector4_f32[1]));
     position.vector4_f32[1] = 0.f;
     position.vector4_f32[2] = -2.f * (float)cos(XMConvertToRadians(rotation.vector4_f32[1]));
-    camera.setPosition(position);
+    camera.setPosition(position);*/
 }
 
 void Window::renderFrame()
 {
-    RECT rect;
-    GetClientRect(window, &rect);
-    UINT width = rect.right - rect.left;
-    width = width != 0 ? width : 1;
-    UINT height = rect.bottom - rect.top;
-    height = height != 0 ? height : 1;
-
-    camera.setAspectRatio(width, height);
-
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
 
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -427,6 +425,11 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
     PAINTSTRUCT paintStruct;
     HDC hdc;
 
+    RECT rect;
+    GetClientRect(window, &rect);
+    UINT width = rect.right - rect.left;
+    UINT height = rect.bottom - rect.top;
+
     switch (message)
     {
         case WM_PAINT:
@@ -444,11 +447,6 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
         {
             if (swapChain)
             {
-                RECT rect;
-                GetClientRect(window, &rect);
-                UINT width = rect.right - rect.left;
-                UINT height = rect.bottom - rect.top;
-
                 immediateContext->OMSetRenderTargets(0, 0, 0);
                 backBufferRTView->Release();
 
@@ -520,7 +518,18 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                 viewport.MaxDepth = 1.f;
 
                 immediateContext->RSSetViewports(1, &viewport);
+
+                camera.setAspectRatio(width, height);
             }
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            /*XMVECTOR rotation = camera.getRotation();
+            rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (width / 2)) / 10000.f;
+            camera.setRotation(rotation);*/
+            printf("%d\n", GET_Y_LPARAM(lParam) - rect.left);
+            SetCursorPos(width / 2, height / 2);
             break;
         }
         default:
