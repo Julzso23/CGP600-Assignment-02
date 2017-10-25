@@ -445,6 +445,36 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                     return result;
                 }
 
+                zBuffer->Release();
+
+                D3D11_TEXTURE2D_DESC textureDescription;
+                ZeroMemory(&textureDescription, sizeof(textureDescription));
+                textureDescription.Width = width;
+                textureDescription.Height = height;
+                textureDescription.ArraySize = 1;
+                textureDescription.MipLevels = 1;
+                textureDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+                textureDescription.SampleDesc.Count = 1;
+                textureDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+                textureDescription.Usage = D3D11_USAGE_DEFAULT;
+
+                ID3D11Texture2D* zBufferTexture;
+                result = device->CreateTexture2D(&textureDescription, NULL, &zBufferTexture);
+
+                if (FAILED(result))
+                {
+                    OutputDebugString("#### Failed to create Z buffer texture! ####\n");
+                    return result;
+                }
+
+                D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDescription;
+                ZeroMemory(&depthStencilDescription, sizeof(depthStencilDescription));
+                depthStencilDescription.Format = textureDescription.Format;
+                depthStencilDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+                device->CreateDepthStencilView(zBufferTexture, &depthStencilDescription, &zBuffer);
+                zBufferTexture->Release();
+
                 immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
 
                 D3D11_VIEWPORT viewport;
