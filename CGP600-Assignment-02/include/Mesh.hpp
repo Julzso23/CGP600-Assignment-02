@@ -9,6 +9,9 @@ class Mesh
     private:
         std::vector<Vertex> vertices;
         ID3D11Buffer* vertexBuffer;
+
+        ID3D11ShaderResourceView* texture;
+
         DirectX::XMVECTOR position;
         DirectX::XMVECTOR rotation;
         DirectX::XMVECTOR scale;
@@ -21,6 +24,9 @@ class Mesh
         HRESULT initialiseVertexBuffer(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
 
         ID3D11Buffer* getVertexBuffer(UINT* vertexCount) const;
+
+        HRESULT loadTexture(ID3D11Device* device, ID3D11DeviceContext* immediateContext, const wchar_t* fileName);
+        ID3D11ShaderResourceView* getTexture();
 
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;

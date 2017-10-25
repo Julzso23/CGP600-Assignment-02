@@ -27,6 +27,7 @@ class Window
         Camera camera;
         ID3D11DepthStencilView* zBuffer;
         Mesh block;
+        ID3D11SamplerState* sampler0;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

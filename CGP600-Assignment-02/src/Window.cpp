@@ -86,7 +86,7 @@ HRESULT Window::initialiseD3D()
 
     if (FAILED(result))
     {
-        OutputDebugString("#### Failed to initialise Direct3D! ####\n");
+        OutputDebugString("#### Failed to initialise device and swap chain! ####\n");
         return result;
     }
 
@@ -117,6 +117,7 @@ HRESULT Window::initialiseD3D()
     textureDescription.MipLevels = 1;
     textureDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     textureDescription.SampleDesc.Count = swapChainDescription.SampleDesc.Count;
+    textureDescription.SampleDesc.Quality = swapChainDescription.SampleDesc.Quality;
     textureDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     textureDescription.Usage = D3D11_USAGE_DEFAULT;
 
@@ -132,7 +133,7 @@ HRESULT Window::initialiseD3D()
     D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDescription;
     ZeroMemory(&depthStencilDescription, sizeof(depthStencilDescription));
     depthStencilDescription.Format = textureDescription.Format;
-    depthStencilDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 
     device->CreateDepthStencilView(zBufferTexture, &depthStencilDescription, &zBuffer);
     zBufferTexture->Release();
@@ -156,7 +157,13 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    block.loadFromFile("models/monkey.obj");
+    block.loadFromFile("models/block.obj");
+
+    result = block.loadTexture(device, immediateContext, L"textures/block.bmp");
+    if (FAILED(result))
+    {
+        return result;
+    }
 
     result = block.initialiseVertexBuffer(device, immediateContext);
     if (FAILED(result))
@@ -238,10 +245,18 @@ HRESULT Window::initialiseGraphics()
 
     D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
-    result = device->CreateInputLayout(inputElementDescriptions, 2, vertShader->GetBufferPointer(), vertShader->GetBufferSize(), &inputLayout);
+    result = device->CreateInputLayout(
+        inputElementDescriptions,
+        ARRAYSIZE(inputElementDescriptions),
+        vertShader->GetBufferPointer(),
+        vertShader->GetBufferSize(),
+        &inputLayout
+    );
+
     if (FAILED(result))
     {
         OutputDebugString("#### Failed to create input layout! ####\n");
@@ -249,6 +264,22 @@ HRESULT Window::initialiseGraphics()
     }
 
     immediateContext->IASetInputLayout(inputLayout);
+
+    D3D11_SAMPLER_DESC samplerDescription;
+    ZeroMemory(&samplerDescription, sizeof(samplerDescription));
+    samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+
+    result = device->CreateSamplerState(&samplerDescription, &sampler0);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create sampler state! ####");
+        return result;
+    }
 
     return S_OK;
 }
@@ -381,8 +412,11 @@ void Window::renderFrame()
     UINT offset = 0;
     UINT vertexCount;
     ID3D11Buffer* vertexBuffer = block.getVertexBuffer(&vertexCount);
+    ID3D11ShaderResourceView* texture = block.getTexture();
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    immediateContext->PSSetSamplers(0, 1, &sampler0);
+    immediateContext->PSSetShaderResources(0, 1, &texture);
     immediateContext->Draw(vertexCount, 0);
 
     swapChain->Present(1, 0);

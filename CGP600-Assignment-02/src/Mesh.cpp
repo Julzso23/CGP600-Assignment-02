@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <Windows.h>
+#include <WICTextureLoader.h>
 
 using namespace DirectX;
 
@@ -38,6 +39,24 @@ ID3D11Buffer* Mesh::getVertexBuffer(UINT* vertexCount) const
     return vertexBuffer;
 }
 
+HRESULT Mesh::loadTexture(ID3D11Device* device, ID3D11DeviceContext* immediateContext, const wchar_t* fileName)
+{
+    HRESULT result = CreateWICTextureFromFile(device, fileName, NULL, &texture);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to load texture! ####\n");
+        return result;
+    }
+
+    return S_OK;
+}
+
+ID3D11ShaderResourceView * Mesh::getTexture()
+{
+    return texture;
+}
+
 Mesh::Mesh()
 {
     position = DirectX::XMVectorZero();
@@ -47,10 +66,8 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-    if (vertexBuffer)
-    {
-        vertexBuffer->Release();
-    }
+    if (vertexBuffer) vertexBuffer->Release();
+    if (texture) texture->Release();
 }
 
 void Mesh::loadFromFile(const char* fileName)
@@ -59,10 +76,11 @@ void Mesh::loadFromFile(const char* fileName)
 
     if (!file)
     {
-        OutputDebugString((std::string("#### Failed to load file: ") + std::string(fileName) + " ####").c_str());
+        OutputDebugString((std::string("#### Failed to load file: ") + std::string(fileName) + " ####\n").c_str());
     }
 
     std::vector<Vertex> newVertices;
+    std::vector<XMFLOAT2> textureCoords;
 
     std::string line;
     while (std::getline(file, line))
@@ -73,29 +91,35 @@ void Mesh::loadFromFile(const char* fileName)
         {
             newVertices.push_back({
                 XMFLOAT3(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str())),
-                XMFLOAT4(1.f, 0.f, 0.f, 1.f)
+                XMFLOAT4(1.f, 1.f, 1.f, 1.f)
             });
+
+            continue;
+        }
+
+        if (data[0] == "vt")
+        {
+            textureCoords.push_back(XMFLOAT2(std::atof(data[1].c_str()), std::atof(data[2].c_str())));
+
+            continue;
         }
 
         if (data[0] == "f")
         {
             for (int i = 1; i <= 3; i++)
             {
-                int index = std::atoi(StringHelpers::split(data[i], '/')[0].c_str());
-                switch (i)
-                {
-                    case 1:
-                        newVertices[index - 1].colour = XMFLOAT4(1.f, 0.f, 0.f, 1.f);
-                        break;
-                    case 2:
-                        newVertices[index - 1].colour = XMFLOAT4(0.f, 1.f, 0.f, 1.f);
-                        break;
-                    case 3:
-                        newVertices[index - 1].colour = XMFLOAT4(0.f, 0.f, 1.f, 1.f);
-                        break;
-                }
-                vertices.push_back(newVertices[index - 1]);
+                std::vector<std::string> face = StringHelpers::split(data[i], '/');
+
+                int vertexIndex = std::atoi(face[0].c_str());
+                Vertex vertex = newVertices[vertexIndex - 1];
+
+                int textureCoordsIndex = std::atoi(face[1].c_str());
+                vertex.textureCoord = textureCoords[textureCoordsIndex - 1];
+
+                vertices.push_back(vertex);
             }
+
+            continue;
         }
     }
 
