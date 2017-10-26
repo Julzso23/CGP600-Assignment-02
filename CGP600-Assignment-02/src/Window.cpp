@@ -417,6 +417,24 @@ void Window::update()
         position.vector4_f32[2] -= 0.1f;
     }
     camera.setPosition(position);
+
+    RECT rect;
+    GetClientRect(window, &rect);
+    UINT width = rect.right - rect.left;
+    UINT height = rect.bottom - rect.top;
+
+    POINT mousePosition;
+    GetCursorPos(&mousePosition);
+
+    XMVECTOR rotation = camera.getRotation();
+    rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (int)(width / 2)) / 10.f;
+    rotation.vector4_f32[0] += (GET_Y_LPARAM(lParam) - (int)(height / 2)) / 10.f;
+    camera.setRotation(rotation);
+
+    mousePosition.x = width / 2;
+    mousePosition.y = height / 2;
+    ClientToScreen(window, &mousePosition);
+    SetCursorPos(mousePosition.x, mousePosition.y);
 }
 
 void Window::renderFrame()
@@ -547,20 +565,6 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
 
             setCursorClip(rect, true);
 
-            break;
-        }
-        case WM_MOUSEMOVE:
-        {
-            XMVECTOR rotation = camera.getRotation();
-            rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (int)(width / 2)) / 10.f;
-            rotation.vector4_f32[0] += (GET_Y_LPARAM(lParam) - (int)(height / 2)) / 10.f;
-            camera.setRotation(rotation);
-
-            POINT position;
-            position.x = width / 2;
-            position.y = height / 2;
-            ClientToScreen(window, &position);
-            SetCursorPos(position.x, position.y);
             break;
         }
         default:
