@@ -33,6 +33,7 @@ class Window
         HRESULT initialiseD3D();
         HRESULT initialiseGraphics();
         void shutdownD3D();
+        void setCursorClip(RECT windowRect, bool shouldClip);
     public:
         ~Window();
         bool pollMessage(MSG* message);

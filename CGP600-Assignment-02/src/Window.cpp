@@ -158,7 +158,7 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    block.loadFromFile("models/tree.obj");
+    block.loadFromFile("models/monkey.obj");
 
     result = block.loadTexture(device, immediateContext, L"textures/block.bmp");
     if (FAILED(result))
@@ -286,7 +286,7 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
-    ShowCursor(false);
+    setCursorClip(rect, true);
 
     return S_OK;
 }
@@ -302,6 +302,28 @@ void Window::shutdownD3D()
     if (swapChain) swapChain->Release();
     if (immediateContext) immediateContext->Release();
     if (device) device->Release();
+}
+
+void Window::setCursorClip(RECT windowRect, bool shouldClip)
+{
+    ShowCursor(!shouldClip);
+    if (shouldClip)
+    {
+        POINT position;
+        position.x = 0;
+        position.y = 0;
+        ClientToScreen(window, &position);
+        RECT clipRect;
+        clipRect.left = position.x;
+        clipRect.right = position.x + windowRect.right;
+        clipRect.top = position.y;
+        clipRect.bottom = position.y + windowRect.bottom;
+        ClipCursor(&clipRect);
+    }
+    else
+    {
+        ClipCursor(NULL);
+    }
 }
 
 Window::~Window()
@@ -385,15 +407,16 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
-    /*XMVECTOR rotation = camera.getRotation();
-    rotation.vector4_f32[1] += 0.05f;
-    camera.setRotation(rotation);
-
-    XMVECTOR position;
-    position.vector4_f32[0] = -2.f * (float)sin(XMConvertToRadians(rotation.vector4_f32[1]));
-    position.vector4_f32[1] = 0.f;
-    position.vector4_f32[2] = -2.f * (float)cos(XMConvertToRadians(rotation.vector4_f32[1]));
-    camera.setPosition(position);*/
+    XMVECTOR position = camera.getPosition();
+    if (GetKeyState('W') & 0x8000)
+    {
+        position.vector4_f32[2] += 0.1f;
+    }
+    if (GetKeyState('S') & 0x8000)
+    {
+        position.vector4_f32[2] -= 0.1f;
+    }
+    camera.setPosition(position);
 }
 
 void Window::renderFrame()
@@ -521,15 +544,23 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
 
                 camera.setAspectRatio(width, height);
             }
+
+            setCursorClip(rect, true);
+
             break;
         }
         case WM_MOUSEMOVE:
         {
-            /*XMVECTOR rotation = camera.getRotation();
-            rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (width / 2)) / 10000.f;
-            camera.setRotation(rotation);*/
-            printf("%d\n", GET_Y_LPARAM(lParam) - rect.left);
-            SetCursorPos(width / 2, height / 2);
+            XMVECTOR rotation = camera.getRotation();
+            rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (int)(width / 2)) / 10.f;
+            rotation.vector4_f32[0] += (GET_Y_LPARAM(lParam) - (int)(height / 2)) / 10.f;
+            camera.setRotation(rotation);
+
+            POINT position;
+            position.x = width / 2;
+            position.y = height / 2;
+            ClientToScreen(window, &position);
+            SetCursorPos(position.x, position.y);
             break;
         }
         default:
