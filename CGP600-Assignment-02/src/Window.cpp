@@ -407,14 +407,18 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 
 void Window::update()
 {
+    std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+    lastTime = currentTime;
+
     XMVECTOR position = camera.getPosition();
     if (GetKeyState('W') & 0x8000)
     {
-        position.vector4_f32[2] += 0.1f;
+        position.vector4_f32[2] += 1.f * deltaTime;
     }
     if (GetKeyState('S') & 0x8000)
     {
-        position.vector4_f32[2] -= 0.1f;
+        position.vector4_f32[2] -= 1.f * deltaTime;
     }
     camera.setPosition(position);
 
@@ -425,10 +429,11 @@ void Window::update()
 
     POINT mousePosition;
     GetCursorPos(&mousePosition);
+    ScreenToClient(window, &mousePosition);
 
     XMVECTOR rotation = camera.getRotation();
-    rotation.vector4_f32[1] += (GET_X_LPARAM(lParam) - (int)(width / 2)) / 10.f;
-    rotation.vector4_f32[0] += (GET_Y_LPARAM(lParam) - (int)(height / 2)) / 10.f;
+    rotation.vector4_f32[1] += (mousePosition.x - (int)(width / 2)) / 10.f;
+    rotation.vector4_f32[0] += (mousePosition.y - (int)(height / 2)) / 10.f;
     camera.setRotation(rotation);
 
     mousePosition.x = width / 2;
