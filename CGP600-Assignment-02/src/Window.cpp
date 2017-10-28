@@ -281,6 +281,7 @@ HRESULT Window::initialiseGraphics()
 
 void Window::shutdownD3D()
 {
+    if (sampler0) sampler0->Release();
     if (zBuffer) zBuffer->Release();
     if (constantBuffer0) constantBuffer0->Release();
     if (inputLayout) inputLayout->Release();
