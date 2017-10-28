@@ -260,7 +260,7 @@ HRESULT Window::initialiseGraphics()
 
     D3D11_SAMPLER_DESC samplerDescription;
     ZeroMemory(&samplerDescription, sizeof(samplerDescription));
-    samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
     samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -409,6 +409,22 @@ void Window::update()
     if (GetKeyState('S') & 0x8000)
     {
         position.vector4_f32[2] -= 1.f * deltaTime;
+    }
+    if (GetKeyState('A') & 0x8000)
+    {
+        position.vector4_f32[0] -= 1.f * deltaTime;
+    }
+    if (GetKeyState('D') & 0x8000)
+    {
+        position.vector4_f32[0] += 1.f * deltaTime;
+    }
+    if (GetKeyState(VK_SPACE) & 0x8000)
+    {
+        position.vector4_f32[1] += 1.f * deltaTime;
+    }
+    if (GetKeyState(VK_LCONTROL) & 0x8000)
+    {
+        position.vector4_f32[1] -= 1.f * deltaTime;
     }
     camera.setPosition(position);
 
