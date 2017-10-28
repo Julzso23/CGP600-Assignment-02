@@ -2,10 +2,11 @@
 
 #include <Windows.h>
 #include <d3d11.h>
+#include <chrono>
 #include "Vertex.hpp"
 #include "ConstantBuffers.hpp"
 #include "Camera.hpp"
-#include "Mesh.hpp"
+#include "WorldManager.hpp"
 
 class Window
 {
@@ -23,11 +24,11 @@ class Window
         ID3D11PixelShader* pixelShader;
         ID3D11InputLayout* inputLayout;
         ID3D11Buffer* constantBuffer0;
-        ConstantBuffer0 constantBuffer0Values;
         Camera camera;
         ID3D11DepthStencilView* zBuffer;
-        Mesh block;
         ID3D11SamplerState* sampler0;
+        std::chrono::high_resolution_clock::time_point lastTime;
+        WorldManager worldManager;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

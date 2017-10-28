@@ -158,19 +158,7 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    block.loadFromFile("models/monkey.obj");
-
-    result = block.loadTexture(device, immediateContext, L"textures/block.bmp");
-    if (FAILED(result))
-    {
-        return result;
-    }
-
-    result = block.initialiseVertexBuffer(device, immediateContext);
-    if (FAILED(result))
-    {
-        return result;
-    }
+    worldManager.initialise(device, immediateContext);
 
     D3D11_BUFFER_DESC constantBuffer0Description;
     ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
@@ -411,6 +399,8 @@ void Window::update()
     float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
     lastTime = currentTime;
 
+    printf("%f\n", 1.f / deltaTime);
+
     XMVECTOR position = camera.getPosition();
     if (GetKeyState('W') & 0x8000)
     {
@@ -445,23 +435,11 @@ void Window::update()
 void Window::renderFrame()
 {
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
-
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-
-    constantBuffer0Values.worldViewProjection = block.getTransform() * camera.getViewMatrix();
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Values, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    UINT vertexCount;
-    ID3D11Buffer* vertexBuffer = block.getVertexBuffer(&vertexCount);
-    ID3D11ShaderResourceView* texture = block.getTexture();
-    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     immediateContext->PSSetSamplers(0, 1, &sampler0);
-    immediateContext->PSSetShaderResources(0, 1, &texture);
-    immediateContext->Draw(vertexCount, 0);
+
+    worldManager.renderFrame(immediateContext, camera.getViewMatrix(), constantBuffer0);
 
     swapChain->Present(1, 0);
 }

@@ -39,7 +39,7 @@ ID3D11Buffer* Mesh::getVertexBuffer(UINT* vertexCount) const
     return vertexBuffer;
 }
 
-HRESULT Mesh::loadTexture(ID3D11Device* device, ID3D11DeviceContext* immediateContext, const wchar_t* fileName)
+HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName)
 {
     HRESULT result = CreateWICTextureFromFile(device, fileName, NULL, &texture);
 
