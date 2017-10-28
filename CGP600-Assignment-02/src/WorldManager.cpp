@@ -13,7 +13,7 @@ void WorldManager::removeBlock(int index)
 
 WorldManager::WorldManager() :
     width(32),
-    height(16),
+    height(32),
     depth(32),
     blocks(width * height * depth)
 {

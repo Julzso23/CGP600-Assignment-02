@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <chrono>
+#include <mutex>
 #include "Vertex.hpp"
 #include "ConstantBuffers.hpp"
 #include "Camera.hpp"
@@ -27,8 +28,10 @@ class Window
         Camera camera;
         ID3D11DepthStencilView* zBuffer;
         ID3D11SamplerState* sampler0;
-        std::chrono::high_resolution_clock::time_point lastTime;
+        std::chrono::high_resolution_clock::time_point updateLastTime;
+        std::chrono::high_resolution_clock::time_point renderLastTime;
         WorldManager worldManager;
+        mutable std::mutex mutex;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();

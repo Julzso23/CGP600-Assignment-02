@@ -396,10 +396,8 @@ HRESULT Window::create(HINSTANCE instance, int commandShow, char* name)
 void Window::update()
 {
     std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-    float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
-    lastTime = currentTime;
-
-    printf("%f\n", 1.f / deltaTime);
+    float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
+    updateLastTime = currentTime;
 
     XMVECTOR position = camera.getPosition();
     if (GetKeyState('W') & 0x8000)
@@ -450,6 +448,13 @@ void Window::update()
 
 void Window::renderFrame()
 {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - renderLastTime).count();
+    renderLastTime = currentTime;
+    printf("%ffps\n", 1.f / deltaTime);
+
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -487,6 +492,8 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
         {
             if (swapChain)
             {
+                std::lock_guard<std::mutex> lock(mutex);
+
                 immediateContext->OMSetRenderTargets(0, 0, 0);
                 backBufferRTView->Release();
 

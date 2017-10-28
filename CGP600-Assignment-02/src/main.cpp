@@ -1,5 +1,6 @@
 #include "Window.hpp"
 #include <stdio.h>
+#include <thread>
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int commandShow)
 {
@@ -19,6 +20,23 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
 
     bool running = true;
     MSG message = { 0 };
+
+    std::thread updateThread([&window, &running]()
+    {
+        while (running)
+        {
+            window.update();
+        }
+    });
+
+    std::thread renderThread([&window, &running]()
+    {
+        while (running)
+        {
+            window.renderFrame();
+        }
+    });
+
     while (running)
     {
         if (window.pollMessage(&message))
@@ -32,10 +50,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
                 }
             }
         }
-
-        window.update();
-        window.renderFrame();
     }
+
+    updateThread.join();
+    renderThread.join();
 
     return (int)message.wParam;
 }

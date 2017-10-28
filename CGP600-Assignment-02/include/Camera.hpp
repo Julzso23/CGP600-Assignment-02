@@ -4,6 +4,7 @@
 #define _XM_NO_INTRINSICS_
 #define XM_NO_ALIGNMENT
 #include <DirectXMath.h>
+#include <mutex>
 
 using namespace DirectX;
 
@@ -17,6 +18,8 @@ class Camera
         XMVECTOR position, rotation;
 
         XMMATRIX projection, world;
+
+        mutable std::mutex mutex;
     public:
         XMMATRIX getViewMatrix() const;
 
