@@ -15,6 +15,8 @@ class WorldManager
 
         std::vector<std::unique_ptr<Block>> blocks;
         std::map<std::uint8_t, std::unique_ptr<BlockDetails>> blockDetails;
+        int getBlockIndex(int x, int y, int z);
+        void removeBlock(int index);
     public:
         WorldManager();
         void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);

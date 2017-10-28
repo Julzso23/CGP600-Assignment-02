@@ -1,6 +1,16 @@
 #include "WorldManager.hpp"
 #include "ConstantBuffers.hpp"
 
+int WorldManager::getBlockIndex(int x, int y, int z)
+{
+    return x + width * (y + height * z);
+}
+
+void WorldManager::removeBlock(int index)
+{
+    blocks[index] = nullptr;
+}
+
 WorldManager::WorldManager() :
     width(32),
     height(16),
@@ -24,6 +34,8 @@ void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immedia
         }
     }
 
+    std::vector<int> toRemove;
+
     for (int x = 1; x < width - 1; x++)
     {
         for (int y = 1; y < height - 1; y++)
@@ -34,26 +46,31 @@ void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immedia
                     getBlock(x, y - 1, z), getBlock(x, y + 1, z) &&
                     getBlock(x, y, z - 1) && getBlock(x, y, z + 1))
                 {
-                    removeBlock(x, y, z);
+                    toRemove.push_back(getBlockIndex(x, y, z));
                 }
             }
         }
+    }
+
+    for (int block : toRemove)
+    {
+        removeBlock(block);
     }
 }
 
 void WorldManager::addBlock(int x, int y, int z, Block value)
 {
-    blocks[x + width * (y + height * z)] = std::make_unique<Block>(value);
+    blocks[getBlockIndex(x, y, z)] = std::make_unique<Block>(value);
 }
 
 void WorldManager::removeBlock(int x, int y, int z)
 {
-    blocks[x + width * (y + height * z)] = nullptr;
+    removeBlock(getBlockIndex(x, y, z));
 }
 
 Block* WorldManager::getBlock(int x, int y, int z)
 {
-    return blocks[x  + width * (y + height * z)].get();
+    return blocks[getBlockIndex(x, y, z)].get();
 }
 
 void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, DirectX::XMMATRIX viewMatrix, ID3D11Buffer* constantBuffer0)
