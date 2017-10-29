@@ -400,32 +400,36 @@ void Window::update()
     float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
     updateLastTime = currentTime;
 
-    XMVECTOR position = camera.getPosition();
+    XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
     {
-        position.vector4_f32[2] += 1.f * deltaTime;
+        positionOffset.vector4_f32[2] += 1.f * deltaTime;
     }
     if (GetKeyState('S') & 0x8000)
     {
-        position.vector4_f32[2] -= 1.f * deltaTime;
+        positionOffset.vector4_f32[2] -= 1.f * deltaTime;
     }
     if (GetKeyState('A') & 0x8000)
     {
-        position.vector4_f32[0] -= 1.f * deltaTime;
+        positionOffset.vector4_f32[0] -= 1.f * deltaTime;
     }
     if (GetKeyState('D') & 0x8000)
     {
-        position.vector4_f32[0] += 1.f * deltaTime;
+        positionOffset.vector4_f32[0] += 1.f * deltaTime;
     }
     if (GetKeyState(VK_SPACE) & 0x8000)
     {
-        position.vector4_f32[1] += 1.f * deltaTime;
+        positionOffset.vector4_f32[1] += 1.f * deltaTime;
     }
     if (GetKeyState(VK_LCONTROL) & 0x8000)
     {
-        position.vector4_f32[1] -= 1.f * deltaTime;
+        positionOffset.vector4_f32[1] -= 1.f * deltaTime;
     }
-    camera.setPosition(position);
+
+    float cameraAngle = camera.getRotation().vector4_f32[1];
+    positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
+
+    camera.setPosition(camera.getPosition() + positionOffset);
 
     RECT rect;
     GetClientRect(window, &rect);
