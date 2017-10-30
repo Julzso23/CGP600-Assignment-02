@@ -328,11 +328,11 @@ bool Window::pollMessage(MSG* message)
         TranslateMessage(message);
         DispatchMessage(message);
 
-        return false;
+        return true;
     }
     else
     {
-        return true;
+        return false;
     }
 }
 
@@ -399,6 +399,8 @@ void Window::update()
     std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
     float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
     updateLastTime = currentTime;
+
+	if (GetForegroundWindow() != window) return;
 
     XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
