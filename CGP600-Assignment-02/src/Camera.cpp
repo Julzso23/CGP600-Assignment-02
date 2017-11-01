@@ -63,31 +63,3 @@ float Camera::getFarClippingPlane() const
 
     return farClippingPlane;
 }
-
-void Camera::setPosition(XMVECTOR position)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    this->position = position;
-}
-
-XMVECTOR Camera::getPosition() const
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    return position;
-}
-
-void Camera::setRotation(XMVECTOR rotation)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    this->rotation = rotation;
-}
-
-XMVECTOR Camera::getRotation() const
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    return rotation;
-}
