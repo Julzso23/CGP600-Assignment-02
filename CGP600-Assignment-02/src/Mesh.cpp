@@ -81,6 +81,7 @@ void Mesh::loadFromFile(const char* fileName)
 
     std::vector<Vertex> newVertices;
     std::vector<XMFLOAT2> textureCoords;
+	std::vector<XMFLOAT3> normals;
 
     std::string line;
     while (std::getline(file, line))
@@ -89,10 +90,11 @@ void Mesh::loadFromFile(const char* fileName)
 
         if (data[0] == "v")
         {
-            newVertices.push_back({
-                XMFLOAT3(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str())),
-                XMFLOAT4(1.f, 1.f, 1.f, 1.f)
-            });
+			Vertex vertex;
+			ZeroMemory(&vertex, sizeof(Vertex));
+			vertex.position = XMFLOAT4(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str()), 1.f);
+			vertex.colour = XMFLOAT4(1.f, 1.f, 1.f, 1.f);
+            newVertices.push_back(vertex);
 
             continue;
         }
@@ -103,6 +105,13 @@ void Mesh::loadFromFile(const char* fileName)
 
             continue;
         }
+
+		if (data[0] == "vn")
+		{
+			normals.push_back(XMFLOAT3(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str())));
+
+			continue;
+		}
 
         if (data[0] == "f")
         {
@@ -115,6 +124,9 @@ void Mesh::loadFromFile(const char* fileName)
 
                 int textureCoordsIndex = std::atoi(face[1].c_str());
                 vertex.textureCoord = textureCoords[textureCoordsIndex - 1];
+
+				/*int normalIndex = std::atoi(face[2].c_str());
+				vertex.normal = normals[normalIndex - 1];*/
 
                 vertices.push_back(vertex);
             }
