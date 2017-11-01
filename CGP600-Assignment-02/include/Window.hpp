@@ -32,6 +32,7 @@ class Window
         std::chrono::high_resolution_clock::time_point renderLastTime;
         WorldManager worldManager;
         mutable std::mutex mutex;
+        XMVECTOR ambientColour;
 
         static LRESULT CALLBACK eventCallback(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
         HRESULT initialiseD3D();
