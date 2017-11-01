@@ -61,7 +61,7 @@ Mesh::Mesh()
 {
     position = DirectX::XMVectorZero();
     rotation = DirectX::XMVectorZero();
-    scale = { 1.f, 1.f, 1.f };
+    scale = XMVectorSet(1.f, 1.f, 1.f, 0.f);
 }
 
 Mesh::~Mesh()
@@ -172,9 +172,9 @@ XMMATRIX Mesh::getTransform() const
 {
     XMMATRIX transform = XMMatrixIdentity();
     transform *= XMMatrixScalingFromVector(scale);
-    transform *= XMMatrixRotationZ(XMConvertToRadians(rotation.vector4_f32[2]));
-    transform *= XMMatrixRotationX(XMConvertToRadians(rotation.vector4_f32[0]));
-    transform *= XMMatrixRotationY(XMConvertToRadians(rotation.vector4_f32[1]));
+    transform *= XMMatrixRotationZ(XMConvertToRadians(XMVectorGetZ(rotation)));
+    transform *= XMMatrixRotationX(XMConvertToRadians(XMVectorGetX(rotation)));
+    transform *= XMMatrixRotationY(XMConvertToRadians(XMVectorGetY(rotation)));
     transform *= XMMatrixTranslationFromVector(position);
     return transform;
 }

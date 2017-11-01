@@ -406,30 +406,30 @@ void Window::update()
     XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
     {
-        positionOffset.vector4_f32[2] += 1.f * deltaTime;
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + 1.f * deltaTime);
     }
     if (GetKeyState('S') & 0x8000)
     {
-        positionOffset.vector4_f32[2] -= 1.f * deltaTime;
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - 1.f * deltaTime);
     }
     if (GetKeyState('A') & 0x8000)
     {
-        positionOffset.vector4_f32[0] -= 1.f * deltaTime;
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - 1.f * deltaTime);
     }
     if (GetKeyState('D') & 0x8000)
     {
-        positionOffset.vector4_f32[0] += 1.f * deltaTime;
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f * deltaTime);
     }
     if (GetKeyState(VK_SPACE) & 0x8000)
     {
-        positionOffset.vector4_f32[1] += 1.f * deltaTime;
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + 1.f * deltaTime);
     }
     if (GetKeyState(VK_LCONTROL) & 0x8000)
     {
-        positionOffset.vector4_f32[1] -= 1.f * deltaTime;
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - 1.f * deltaTime);
     }
 
-    float cameraAngle = camera.getRotation().vector4_f32[1];
+    float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
 
     camera.setPosition(camera.getPosition() + positionOffset);
@@ -444,8 +444,8 @@ void Window::update()
     ScreenToClient(window, &mousePosition);
 
     XMVECTOR rotation = camera.getRotation();
-    rotation.vector4_f32[1] += (mousePosition.x - (int)(width / 2)) / 10.f;
-    rotation.vector4_f32[0] += (mousePosition.y - (int)(height / 2)) / 10.f;
+    rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (mousePosition.x - (int)(width / 2)) / 10.f);
+    rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (mousePosition.y - (int)(height / 2)) / 10.f);
     camera.setRotation(rotation);
 
     mousePosition.x = width / 2;

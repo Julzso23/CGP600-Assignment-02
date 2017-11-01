@@ -12,6 +12,9 @@ class Transformable
     protected:
         DirectX::XMVECTOR position, rotation;
     public:
+        static DirectX::XMVECTOR vectorConvertToRadians(DirectX::XMVECTOR vector);
+        static DirectX::XMVECTOR vectorConvertToDegrees(DirectX::XMVECTOR vector);
+
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;
 

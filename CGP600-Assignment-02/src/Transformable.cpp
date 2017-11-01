@@ -1,5 +1,27 @@
 #include "Transformable.hpp"
 
+using namespace DirectX;
+
+DirectX::XMVECTOR Transformable::vectorConvertToRadians(DirectX::XMVECTOR vector)
+{
+    return XMVectorSet(
+        XMConvertToRadians(XMVectorGetX(vector)),
+        XMConvertToRadians(XMVectorGetY(vector)),
+        XMConvertToRadians(XMVectorGetZ(vector)),
+        0.f
+    );
+}
+
+DirectX::XMVECTOR Transformable::vectorConvertToDegrees(DirectX::XMVECTOR vector)
+{
+    return XMVectorSet(
+        XMConvertToDegrees(XMVectorGetX(vector)),
+        XMConvertToDegrees(XMVectorGetY(vector)),
+        XMConvertToDegrees(XMVectorGetZ(vector)),
+        0.f
+    );
+}
+
 void Transformable::setPosition(DirectX::XMVECTOR position)
 {
     std::lock_guard<std::mutex> lock(mutex);

@@ -4,10 +4,8 @@ XMMATRIX Camera::getViewMatrix() const
 {
     std::lock_guard<std::mutex> lock(mutex);
 
-    XMMATRIX view = XMMatrixRotationZ(XMConvertToRadians(rotation.vector4_f32[2]));
-    view *= XMMatrixRotationX(XMConvertToRadians(rotation.vector4_f32[0]));
-    view *= XMMatrixRotationY(XMConvertToRadians(rotation.vector4_f32[1]));
-    view *= XMMatrixTranslation(position.vector4_f32[0], position.vector4_f32[1], position.vector4_f32[2]);
+    XMMATRIX view = XMMatrixRotationRollPitchYawFromVector(Transformable::vectorConvertToRadians(rotation));
+    view *= XMMatrixTranslationFromVector(position);
     view = XMMatrixInverse(NULL, view);
     view *= XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), aspectRatio, nearClippingPlane, farClippingPlane);
 
