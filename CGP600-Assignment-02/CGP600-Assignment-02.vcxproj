@@ -123,9 +123,11 @@
   <ItemGroup>
     <ClCompile Include="src\BlockDetails.cpp" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
-    <ClCompile Include="src\StringHelperes.cpp" />
+    <ClCompile Include="src\StringHelpers.cpp" />
+    <ClCompile Include="src\Transformable.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\WorldManager.cpp" />
   </ItemGroup>
@@ -134,8 +136,10 @@
     <ClInclude Include="include\BlockDetails.hpp" />
     <ClInclude Include="include\ConstantBuffers.hpp" />
     <ClInclude Include="include\Camera.hpp" />
+    <ClInclude Include="include\Light.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\StringHelpers.hpp" />
+    <ClInclude Include="include\Transformable.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
     <ClInclude Include="include\Window.hpp" />
     <ClInclude Include="include\WorldManager.hpp" />
