@@ -121,6 +121,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\PerlinNoise.cpp" />
     <ClCompile Include="src\BlockDetails.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Light.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="include\Camera.hpp" />
     <ClInclude Include="include\Light.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
+    <ClInclude Include="include\PerlinNoise.hpp" />
     <ClInclude Include="include\StringHelpers.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
     <ClInclude Include="include\Vertex.hpp" />

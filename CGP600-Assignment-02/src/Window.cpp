@@ -403,30 +403,32 @@ void Window::update()
 
 	if (GetForegroundWindow() != window) return;
 
+    float moveSpeed = 2.f;
+
     XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
     {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + 1.f * deltaTime);
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + moveSpeed * deltaTime);
     }
     if (GetKeyState('S') & 0x8000)
     {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - 1.f * deltaTime);
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - moveSpeed * deltaTime);
     }
     if (GetKeyState('A') & 0x8000)
     {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - 1.f * deltaTime);
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - moveSpeed * deltaTime);
     }
     if (GetKeyState('D') & 0x8000)
     {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f * deltaTime);
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + moveSpeed * deltaTime);
     }
     if (GetKeyState(VK_SPACE) & 0x8000)
     {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + 1.f * deltaTime);
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + moveSpeed * deltaTime);
     }
     if (GetKeyState(VK_LCONTROL) & 0x8000)
     {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - 1.f * deltaTime);
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - moveSpeed * deltaTime);
     }
 
     float cameraAngle = XMVectorGetY(camera.getRotation());

@@ -1,5 +1,6 @@
 #include "WorldManager.hpp"
 #include "ConstantBuffers.hpp"
+#include "PerlinNoise.hpp"
 
 int WorldManager::getBlockIndex(int x, int y, int z)
 {
@@ -12,9 +13,9 @@ void WorldManager::removeBlock(int index)
 }
 
 WorldManager::WorldManager() :
-    width(16),
-    height(16),
-    depth(16),
+    width(32),
+    height(32),
+    depth(32),
     blocks(width * height * depth)
 {
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
@@ -26,13 +27,18 @@ void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immedia
 {
     blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "dirt.bmp"));
 
+    PerlinNoise noiseGenerator(1234);
+
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
             for (int z = 0; z < depth; z++)
             {
-                addBlock(x, y, z, { 0 });
+                if (noiseGenerator.noise((float)x / (float)width, (float)y / (float)height, (float)z / (float)depth) > 0.4f)
+                {
+                    addBlock(x, y, z, { 0 });
+                }
             }
         }
     }
@@ -46,7 +52,7 @@ void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immedia
             for (int z = 1; z < depth - 1; z++)
             {
                 if (getBlock(x - 1, y, z) && getBlock(x + 1, y, z) &&
-                    getBlock(x, y - 1, z), getBlock(x, y + 1, z) &&
+                    getBlock(x, y - 1, z) && getBlock(x, y + 1, z) &&
                     getBlock(x, y, z - 1) && getBlock(x, y, z + 1))
                 {
                     toRemove.push_back(getBlockIndex(x, y, z));
