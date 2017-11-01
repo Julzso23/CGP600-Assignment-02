@@ -13,7 +13,7 @@ HRESULT Mesh::initialiseVertexBuffer(ID3D11Device* device, ID3D11DeviceContext* 
     D3D11_BUFFER_DESC vertexBufferDescription;
     ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
     vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    vertexBufferDescription.ByteWidth = vertices.size() * sizeof(Vertex);
+    vertexBufferDescription.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
     vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
@@ -92,7 +92,7 @@ void Mesh::loadFromFile(const char* fileName)
         {
 			Vertex vertex;
 			ZeroMemory(&vertex, sizeof(Vertex));
-			vertex.position = XMFLOAT4(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str()), 1.f);
+			vertex.position = XMFLOAT4((float)std::atof(data[1].c_str()), (float)std::atof(data[2].c_str()), (float)std::atof(data[3].c_str()), 1.f);
 			vertex.colour = XMFLOAT4(1.f, 1.f, 1.f, 1.f);
             newVertices.push_back(vertex);
 
@@ -101,14 +101,14 @@ void Mesh::loadFromFile(const char* fileName)
 
         if (data[0] == "vt")
         {
-            textureCoords.push_back(XMFLOAT2(std::atof(data[1].c_str()), std::atof(data[2].c_str())));
+            textureCoords.push_back(XMFLOAT2((float)std::atof(data[1].c_str()), (float)std::atof(data[2].c_str())));
 
             continue;
         }
 
 		if (data[0] == "vn")
 		{
-			normals.push_back(XMFLOAT3(std::atof(data[1].c_str()), std::atof(data[2].c_str()), std::atof(data[3].c_str())));
+			normals.push_back(XMFLOAT3((float)std::atof(data[1].c_str()), (float)std::atof(data[2].c_str()), (float)std::atof(data[3].c_str())));
 
 			continue;
 		}
@@ -125,8 +125,8 @@ void Mesh::loadFromFile(const char* fileName)
                 int textureCoordsIndex = std::atoi(face[1].c_str());
                 vertex.textureCoord = textureCoords[textureCoordsIndex - 1];
 
-				/*int normalIndex = std::atoi(face[2].c_str());
-				vertex.normal = normals[normalIndex - 1];*/
+				int normalIndex = std::atoi(face[2].c_str());
+				vertex.normal = normals[normalIndex - 1];
 
                 vertices.push_back(vertex);
             }
