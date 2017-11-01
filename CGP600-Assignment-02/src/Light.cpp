@@ -1,5 +1,17 @@
 #include "Light.hpp"
 
+DirectX::XMVECTOR Light::ambientColour;
+
+void Light::setAmbientColour(DirectX::XMVECTOR colour)
+{
+    ambientColour = colour;
+}
+
+DirectX::XMVECTOR Light::getAmbientColour()
+{
+    return ambientColour;
+}
+
 void Light::setColour(DirectX::XMVECTOR colour)
 {
     std::lock_guard<std::mutex> lock(mutex);

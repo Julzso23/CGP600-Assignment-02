@@ -5,10 +5,14 @@
 class Light
 {
     private:
+        static DirectX::XMVECTOR ambientColour;
         DirectX::XMVECTOR colour;
         DirectX::XMVECTOR direction;
         mutable std::mutex mutex;
     public:
+        static void setAmbientColour(DirectX::XMVECTOR colour);
+        static DirectX::XMVECTOR getAmbientColour();
+
         void setColour(DirectX::XMVECTOR colour);
         DirectX::XMVECTOR getColour() const;
 
