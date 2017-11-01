@@ -163,7 +163,7 @@ HRESULT Window::initialiseGraphics()
     D3D11_BUFFER_DESC constantBuffer0Description;
     ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
     constantBuffer0Description.Usage = D3D11_USAGE_DEFAULT;
-    constantBuffer0Description.ByteWidth = 64;
+    constantBuffer0Description.ByteWidth = 112;
     constantBuffer0Description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
     result = device->CreateBuffer(&constantBuffer0Description, NULL, &constantBuffer0);
@@ -176,7 +176,7 @@ HRESULT Window::initialiseGraphics()
 
     camera.setFieldOfView(60.f);
     camera.setClippingPlanes(0.1f, 100.f);
-    camera.setPosition({ 0.f, 0.f, -2.f });
+    camera.setPosition(XMVectorSet(0.f, 0.f, -2.f, 0.f));
 
     RECT rect;
     GetClientRect(window, &rect);

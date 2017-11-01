@@ -17,6 +17,9 @@ WorldManager::WorldManager() :
     depth(16),
     blocks(width * height * depth)
 {
+    light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
+    light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 0.f));
+    light.setAmbientColour(DirectX::XMVectorSet(0.2f, 0.2f, 0.2f, 1.f));
 }
 
 void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
@@ -89,7 +92,12 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, DirectX::X
 
                 mesh->setPosition({ (float)x, (float)y, (float)z });
 
-                ConstantBuffer0 constantBuffer0Value = { mesh->getTransform() * viewMatrix };
+                ConstantBuffer0 constantBuffer0Value = {
+                    mesh->getTransform() * viewMatrix,
+                    DirectX::XMVectorNegate(light.getDirection()),
+                    light.getColour(),
+                    light.getAmbientColour()
+                };
                 immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
                 immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
 

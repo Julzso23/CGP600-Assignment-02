@@ -2,6 +2,7 @@
 
 #include "Block.hpp"
 #include "BlockDetails.hpp"
+#include "Light.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -15,6 +16,9 @@ class WorldManager
 
         std::vector<std::unique_ptr<Block>> blocks;
         std::map<std::uint8_t, std::unique_ptr<BlockDetails>> blockDetails;
+
+        Light light;
+
         int getBlockIndex(int x, int y, int z);
         void removeBlock(int index);
     public:
