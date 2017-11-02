@@ -17,6 +17,9 @@ class WorldManager
         std::vector<std::unique_ptr<Block>> blocks;
         std::map<std::uint8_t, std::unique_ptr<BlockDetails>> blockDetails;
 
+        ID3D11Buffer* vertexBuffer = nullptr;
+        std::vector<Vertex> vertices;
+
         Light light;
 
         int getBlockIndex(int x, int y, int z);

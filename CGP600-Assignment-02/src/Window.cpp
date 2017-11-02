@@ -403,7 +403,7 @@ void Window::update()
 
 	if (GetForegroundWindow() != window) return;
 
-    float moveSpeed = 2.f;
+    float moveSpeed = 4.f;
 
     XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
@@ -472,7 +472,7 @@ void Window::renderFrame()
 
     worldManager.renderFrame(immediateContext, camera.getViewMatrix(), constantBuffer0);
 
-    swapChain->Present(1, 0);
+    swapChain->Present(0, 0);
 }
 
 LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam)

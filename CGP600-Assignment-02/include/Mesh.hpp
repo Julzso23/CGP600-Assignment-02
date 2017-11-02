@@ -20,13 +20,14 @@ class Mesh
         ~Mesh();
 
         void loadFromFile(const char* fileName);
+        std::vector<Vertex>* getVertices();
 
         HRESULT initialiseVertexBuffer(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
 
         ID3D11Buffer* getVertexBuffer(UINT* vertexCount) const;
 
         HRESULT loadTexture(ID3D11Device* device, const wchar_t* fileName);
-        ID3D11ShaderResourceView* getTexture();
+        ID3D11ShaderResourceView* getTexture() const;
 
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;

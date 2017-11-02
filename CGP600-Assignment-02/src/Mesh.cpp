@@ -52,7 +52,7 @@ HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName)
     return S_OK;
 }
 
-ID3D11ShaderResourceView * Mesh::getTexture()
+ID3D11ShaderResourceView * Mesh::getTexture() const
 {
     return texture;
 }
@@ -136,6 +136,11 @@ void Mesh::loadFromFile(const char* fileName)
     }
 
     file.close();
+}
+
+std::vector<Vertex>* Mesh::getVertices()
+{
+    return &vertices;
 }
 
 void Mesh::setPosition(XMVECTOR position)
