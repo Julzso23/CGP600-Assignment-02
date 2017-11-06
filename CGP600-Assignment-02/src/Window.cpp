@@ -175,7 +175,7 @@ HRESULT Window::initialiseGraphics()
     }
 
     camera.setFieldOfView(60.f);
-    camera.setClippingPlanes(0.1f, 100.f);
+    camera.setClippingPlanes(0.1f, 1000.f);
     camera.setPosition(XMVectorSet(0.f, 0.f, -2.f, 0.f));
 
     RECT rect;
