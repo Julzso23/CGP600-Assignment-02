@@ -10,7 +10,6 @@ BlockDetails::BlockDetails(ID3D11Device* device, ID3D11DeviceContext* immediateC
     mesh.loadFromFile("models/block.obj");
     textureName = "textures/" + textureName;
     mesh.loadTexture(device, std::wstring(textureName.begin(), textureName.end()).c_str());
-    mesh.initialiseVertexBuffer(device, immediateContext);
 }
 
 std::string BlockDetails::getName()
