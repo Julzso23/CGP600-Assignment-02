@@ -15,6 +15,8 @@ class Transformable
         static DirectX::XMVECTOR vectorConvertToRadians(DirectX::XMVECTOR vector);
         static DirectX::XMVECTOR vectorConvertToDegrees(DirectX::XMVECTOR vector);
 
+        Transformable();
+
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;
 

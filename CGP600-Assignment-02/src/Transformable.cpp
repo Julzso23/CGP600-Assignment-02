@@ -22,6 +22,12 @@ DirectX::XMVECTOR Transformable::vectorConvertToDegrees(DirectX::XMVECTOR vector
     );
 }
 
+Transformable::Transformable()
+{
+    position = XMVectorZero();
+    rotation = XMVectorZero();
+}
+
 void Transformable::setPosition(DirectX::XMVECTOR position)
 {
     std::lock_guard<std::mutex> lock(mutex);
