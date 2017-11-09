@@ -6,30 +6,48 @@ cbuffer CBuffer0
     float4 ambientLightColour;
 };
 
+struct VIn
+{
+    float4 position : POSITION;
+    float4 colour : COLOR;
+    float2 texcoord : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
+};
+
 struct VOut
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    float4 colour : COLOR;
     float2 texcoord : TEXCOORD;
 	float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
-VOut VShader(float4 position : POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD, float3 normal : NORMAL)
+Texture2D textures[2];
+SamplerState sampler0;
+
+VOut VShader(VIn input)
 {
     VOut output;
-    output.position = mul(worldViewProjection, float4(position.xyz, 1.f));
-    float diffuseAmount = dot(lightDirection, normal);
-    diffuseAmount = saturate(diffuseAmount);
-    output.color = ambientLightColour + (lightColour * diffuseAmount);
-    output.texcoord = texcoord;
-	output.normal = normal;
+    output.position = mul(worldViewProjection, float4(input.position.xyz, 1.f));
+    output.colour = ambientLightColour;
+    output.texcoord = input.texcoord;
+	output.normal = input.normal;
+    output.tangent = input.tangent;
+    output.binormal = input.binormal;
     return output;
 }
 
-Texture2D texture0;
-SamplerState sampler0;
-
-float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD, float3 normal : NORMAL) : SV_TARGET
+float4 PShader(VOut input) : SV_TARGET
 {
-    return color * texture0.Sample(sampler0, texcoord);
+    float3 normal = (textures[1].Sample(sampler0, input.texcoord).xyz * 2.f) - 1.f;
+    normal = (normal.x * input.tangent) + (normal.y * input.binormal) + (normal.z * input.normal);
+    float diffuseAmount = dot(lightDirection, normal);
+    diffuseAmount = saturate(diffuseAmount);
+
+    input.colour += diffuseAmount * lightColour;
+    return input.colour * textures[0].Sample(sampler0, input.texcoord);
 }

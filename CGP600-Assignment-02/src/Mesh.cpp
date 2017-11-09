@@ -39,7 +39,7 @@ ID3D11Buffer* Mesh::getVertexBuffer(UINT* vertexCount) const
     return vertexBuffer;
 }
 
-HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName)
+HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName, const wchar_t* normalMapFileName)
 {
     HRESULT result = CreateWICTextureFromFile(device, fileName, NULL, &texture);
 
@@ -49,12 +49,25 @@ HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName)
         return result;
     }
 
+    result = CreateWICTextureFromFile(device, normalMapFileName, NULL, &normalMap);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to load normal map! ####\n");
+        return result;
+    }
+
     return S_OK;
 }
 
-ID3D11ShaderResourceView * Mesh::getTexture() const
+ID3D11ShaderResourceView* Mesh::getTexture() const
 {
     return texture;
+}
+
+ID3D11ShaderResourceView* Mesh::getNormalMap() const
+{
+    return normalMap;
 }
 
 Mesh::Mesh()
@@ -68,6 +81,12 @@ Mesh::~Mesh()
 {
     if (vertexBuffer) vertexBuffer->Release();
     if (texture) texture->Release();
+    if (normalMap) normalMap->Release();
+}
+
+static void float3Normalize(XMFLOAT3* value)
+{
+    XMStoreFloat3(value, XMVector3Normalize(XMLoadFloat3(value)));
 }
 
 void Mesh::loadFromFile(const char* fileName)
@@ -115,21 +134,66 @@ void Mesh::loadFromFile(const char* fileName)
 
         if (data[0] == "f")
         {
+            std::vector<Vertex> face(3);
+
             for (int i = 1; i <= 3; i++)
             {
-                std::vector<std::string> face = StringHelpers::split(data[i], '/');
+                std::vector<std::string> vertexData = StringHelpers::split(data[i], '/');
 
-                int vertexIndex = std::atoi(face[0].c_str());
+                int vertexIndex = std::atoi(vertexData[0].c_str());
                 Vertex vertex = newVertices[vertexIndex - 1];
 
-                int textureCoordsIndex = std::atoi(face[1].c_str());
+                int textureCoordsIndex = std::atoi(vertexData[1].c_str());
                 vertex.textureCoord = textureCoords[textureCoordsIndex - 1];
 
-				int normalIndex = std::atoi(face[2].c_str());
+				int normalIndex = std::atoi(vertexData[2].c_str());
 				vertex.normal = normals[normalIndex - 1];
 
-                vertices.push_back(vertex);
+                face.push_back(vertex);
             }
+
+            XMFLOAT3 vector0 = {
+                face[1].position.x - face[0].position.x,
+                face[1].position.y - face[0].position.y,
+                face[1].position.z - face[0].position.z
+            };
+            XMFLOAT3 vector1 = {
+                face[2].position.x - face[0].position.x,
+                face[2].position.y - face[0].position.y,
+                face[2].position.z - face[0].position.z
+            };
+            XMFLOAT2 uVector = {
+                face[1].textureCoord.x - face[0].textureCoord.x,
+                face[2].textureCoord.x - face[0].textureCoord.x
+            };
+            XMFLOAT2 vVector = {
+                face[1].textureCoord.y - face[0].textureCoord.y,
+                face[2].textureCoord.y - face[0].textureCoord.y
+            };
+
+            float denominator = 1.f / ((uVector.x * vVector.y) - (uVector.y * vVector.x));
+            XMFLOAT3 tangent = {
+                ((vVector.y * vector0.x) - (vVector.x * vector1.x)) * denominator,
+                ((vVector.y * vector0.y) - (vVector.x * vector1.y)) * denominator,
+                ((vVector.y * vector0.z) - (vVector.x * vector1.z)) * denominator
+            };
+
+            XMFLOAT3 binormal = {
+                ((uVector.x * vector1.x) - (uVector.y * vector0.x)) * denominator,
+                ((uVector.x * vector1.y) - (uVector.y * vector0.y)) * denominator,
+                ((uVector.x * vector1.z) - (uVector.y * vector0.z)) * denominator
+            };
+
+            float3Normalize(&tangent);
+            float3Normalize(&binormal);
+
+            for (int i = 0; i < 3; i++)
+            {
+                face[i].tangent = tangent;
+                face[i].binormal = binormal;
+            }
+
+            vertices.insert(vertices.end(), face.begin(), face.end());
 
             continue;
         }

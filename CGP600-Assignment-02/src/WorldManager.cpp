@@ -21,13 +21,13 @@ WorldManager::WorldManager(HWND* windowHandle) :
     player(windowHandle)
 {
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
-    light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 0.f));
+    light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
     light.setAmbientColour(DirectX::XMVectorSet(0.2f, 0.2f, 0.2f, 1.f));
 }
 
 void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
-    blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "dirt.bmp"));
+    blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png"));
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
 
@@ -131,12 +131,16 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     };
     immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
+    immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    ID3D11ShaderResourceView* texture = blockDetails[0]->getMesh()->getTexture();
+    ID3D11ShaderResourceView* shaderResources[] = {
+        blockDetails[0]->getMesh()->getTexture(),
+        blockDetails[0]->getMesh()->getNormalMap()
+    };
+    immediateContext->PSSetShaderResources(0, ARRAYSIZE(shaderResources), &shaderResources[0]);
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    immediateContext->PSSetShaderResources(0, 1, &texture);
     immediateContext->Draw(vertices.size(), 0);
 }
 

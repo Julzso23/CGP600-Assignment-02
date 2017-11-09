@@ -4,12 +4,13 @@ BlockDetails::BlockDetails()
 {
 }
 
-BlockDetails::BlockDetails(ID3D11Device* device, ID3D11DeviceContext* immediateContext, std::string name, std::string textureName) :
+BlockDetails::BlockDetails(ID3D11Device* device, ID3D11DeviceContext* immediateContext, std::string name, std::string textureName, std::string normalTextureName) :
     name(name)
 {
     mesh.loadFromFile("models/block.obj");
     textureName = "textures/" + textureName;
-    mesh.loadTexture(device, std::wstring(textureName.begin(), textureName.end()).c_str());
+    normalTextureName = "textures/" + normalTextureName;
+    mesh.loadTexture(device, std::wstring(textureName.begin(), textureName.end()).c_str(), std::wstring(normalTextureName.begin(), normalTextureName.end()).c_str());
 }
 
 std::string BlockDetails::getName()

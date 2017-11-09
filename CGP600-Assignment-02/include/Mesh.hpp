@@ -11,6 +11,7 @@ class Mesh
         ID3D11Buffer* vertexBuffer = nullptr;
 
         ID3D11ShaderResourceView* texture = nullptr;
+        ID3D11ShaderResourceView* normalMap = nullptr;
 
         DirectX::XMVECTOR position;
         DirectX::XMVECTOR rotation;
@@ -26,8 +27,9 @@ class Mesh
 
         ID3D11Buffer* getVertexBuffer(UINT* vertexCount) const;
 
-        HRESULT loadTexture(ID3D11Device* device, const wchar_t* fileName);
+        HRESULT loadTexture(ID3D11Device* device, const wchar_t* fileName, const wchar_t* normalMapFileName);
         ID3D11ShaderResourceView* getTexture() const;
+        ID3D11ShaderResourceView* getNormalMap() const;
 
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;
