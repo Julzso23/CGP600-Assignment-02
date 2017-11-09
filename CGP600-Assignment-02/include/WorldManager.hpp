@@ -3,6 +3,7 @@
 #include "Block.hpp"
 #include "BlockDetails.hpp"
 #include "Light.hpp"
+#include "Player.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -22,13 +23,17 @@ class WorldManager
 
         Light light;
 
+		Player player;
+
         int getBlockIndex(int x, int y, int z);
         void removeBlock(int index);
     public:
-        WorldManager();
+        WorldManager(HWND* windowHandle);
         void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
         Block* getBlock(int x, int y, int z);
-        void renderFrame(ID3D11DeviceContext* immediateContext, DirectX::XMMATRIX viewMatrix, ID3D11Buffer* constantBuffer0);
+        void renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0);
+        void update(float deltaTime);
+        void setCameraAspectRatio(UINT width, UINT height);
 };

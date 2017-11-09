@@ -25,7 +25,6 @@ class Window
         ID3D11PixelShader* pixelShader;
         ID3D11InputLayout* inputLayout;
         ID3D11Buffer* constantBuffer0;
-        Camera camera;
         ID3D11DepthStencilView* zBuffer;
         ID3D11SamplerState* sampler0;
         std::chrono::high_resolution_clock::time_point updateLastTime;
@@ -39,6 +38,7 @@ class Window
         void shutdownD3D();
         void setCursorClip(RECT windowRect, bool shouldClip);
     public:
+		Window();
         ~Window();
         bool pollMessage(MSG* message);
         HRESULT create(HINSTANCE instance, int commandShow, char* name);

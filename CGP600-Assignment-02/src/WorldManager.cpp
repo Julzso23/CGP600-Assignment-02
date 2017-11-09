@@ -13,11 +13,12 @@ void WorldManager::removeBlock(int index)
     blocks[index] = nullptr;
 }
 
-WorldManager::WorldManager() :
+WorldManager::WorldManager(HWND* windowHandle) :
     width(64),
     height(64),
     depth(64),
-    blocks(width * height * depth)
+    blocks(width * height * depth),
+    player(windowHandle)
 {
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
     light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 0.f));
@@ -120,10 +121,10 @@ Block* WorldManager::getBlock(int x, int y, int z)
     return blocks[getBlockIndex(x, y, z)].get();
 }
 
-void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, DirectX::XMMATRIX viewMatrix, ID3D11Buffer* constantBuffer0)
+void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0)
 {
     ConstantBuffer0 constantBuffer0Value = {
-        viewMatrix,
+        player.getCamera()->getViewMatrix(),
         DirectX::XMVectorNegate(light.getDirection()),
         light.getColour(),
         light.getAmbientColour()
@@ -137,4 +138,14 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, DirectX::X
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->PSSetShaderResources(0, 1, &texture);
     immediateContext->Draw(vertices.size(), 0);
+}
+
+void WorldManager::update(float deltaTime)
+{
+    player.update(deltaTime);
+}
+
+void WorldManager::setCameraAspectRatio(UINT width, UINT height)
+{
+    player.setCameraAspectRatio(width, height);
 }

@@ -7,7 +7,7 @@ XMMATRIX Camera::getViewMatrix() const
     XMMATRIX view = XMMatrixRotationRollPitchYawFromVector(Transformable::vectorConvertToRadians(rotation));
     view *= XMMatrixTranslationFromVector(position);
     view = XMMatrixInverse(nullptr, view);
-    view *= XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), aspectRatio, nearClippingPlane, farClippingPlane);
+    view *= XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), (aspectRatio != 0.f) ? aspectRatio : 1.f, nearClippingPlane, farClippingPlane);
 
     return view;
 }

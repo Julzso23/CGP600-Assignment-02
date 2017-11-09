@@ -174,14 +174,6 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
-    camera.setFieldOfView(60.f);
-    camera.setClippingPlanes(0.1f, 1000.f);
-    camera.setPosition(XMVectorSet(0.f, 0.f, -2.f, 0.f));
-
-    RECT rect;
-    GetClientRect(window, &rect);
-    camera.setAspectRatio(rect.right - rect.left, rect.bottom - rect.top);
-
     ID3DBlob* vertShader = nullptr;
     ID3DBlob* pixShader = nullptr;
     ID3DBlob* error = nullptr;
@@ -275,6 +267,8 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
+    RECT rect;
+    GetClientRect(window, &rect);
     setCursorClip(rect, true);
 
     return S_OK;
@@ -314,6 +308,11 @@ void Window::setCursorClip(RECT windowRect, bool shouldClip)
     {
         ClipCursor(NULL);
     }
+}
+
+Window::Window() :
+    worldManager(&window)
+{
 }
 
 Window::~Window()
@@ -401,40 +400,9 @@ void Window::update()
     float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
     updateLastTime = currentTime;
 
+    worldManager.update(deltaTime);
+
 	if (GetForegroundWindow() != window) return;
-
-    float moveSpeed = 4.f;
-
-    XMVECTOR positionOffset = XMVectorZero();
-    if (GetKeyState('W') & 0x8000)
-    {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + moveSpeed * deltaTime);
-    }
-    if (GetKeyState('S') & 0x8000)
-    {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - moveSpeed * deltaTime);
-    }
-    if (GetKeyState('A') & 0x8000)
-    {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - moveSpeed * deltaTime);
-    }
-    if (GetKeyState('D') & 0x8000)
-    {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + moveSpeed * deltaTime);
-    }
-    if (GetKeyState(VK_SPACE) & 0x8000)
-    {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + moveSpeed * deltaTime);
-    }
-    if (GetKeyState(VK_LCONTROL) & 0x8000)
-    {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - moveSpeed * deltaTime);
-    }
-
-    float cameraAngle = XMVectorGetY(camera.getRotation());
-    positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
-
-    camera.setPosition(camera.getPosition() + positionOffset);
 
     RECT rect;
     GetClientRect(window, &rect);
@@ -442,14 +410,6 @@ void Window::update()
     UINT height = rect.bottom - rect.top;
 
     POINT mousePosition;
-    GetCursorPos(&mousePosition);
-    ScreenToClient(window, &mousePosition);
-
-    XMVECTOR rotation = camera.getRotation();
-    rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (mousePosition.x - (int)(width / 2)) / 10.f);
-    rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (mousePosition.y - (int)(height / 2)) / 10.f);
-    camera.setRotation(rotation);
-
     mousePosition.x = width / 2;
     mousePosition.y = height / 2;
     ClientToScreen(window, &mousePosition);
@@ -470,7 +430,7 @@ void Window::renderFrame()
     immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     immediateContext->PSSetSamplers(0, 1, &sampler0);
 
-    worldManager.renderFrame(immediateContext, camera.getViewMatrix(), constantBuffer0);
+    worldManager.renderFrame(immediateContext, constantBuffer0);
 
     swapChain->Present(0, 0);
 }
@@ -575,9 +535,9 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
                 viewport.MaxDepth = 1.f;
 
                 immediateContext->RSSetViewports(1, &viewport);
-
-                camera.setAspectRatio(width, height);
             }
+
+            worldManager.setCameraAspectRatio(width, height);
 
             setCursorClip(rect, true);
 
