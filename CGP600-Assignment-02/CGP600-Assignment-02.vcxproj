@@ -23,7 +23,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{82295534-359C-4800-8F8F-A4C42F071E99}</ProjectGuid>
     <RootNamespace>DX11Test</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
     <ProjectName>CGP600-Assignment-02</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -49,7 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -121,6 +121,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\PerlinNoise.cpp" />
     <ClCompile Include="src\BlockDetails.cpp" />
     <ClCompile Include="src\Camera.cpp" />
@@ -128,22 +129,26 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\StringHelpers.cpp" />
     <ClCompile Include="src\Transformable.cpp" />
+    <ClCompile Include="src\Utility.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\WorldManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Block.hpp" />
     <ClInclude Include="include\BlockDetails.hpp" />
+    <ClInclude Include="include\collision\AABB.hpp" />
+    <ClInclude Include="include\collision\Hit.hpp" />
+    <ClInclude Include="include\collision\Segment.hpp" />
+    <ClInclude Include="include\collision\Sweep.hpp" />
     <ClInclude Include="include\ConstantBuffers.hpp" />
     <ClInclude Include="include\Camera.hpp" />
     <ClInclude Include="include\Light.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\PerlinNoise.hpp" />
     <ClInclude Include="include\Player.hpp" />
-    <ClInclude Include="include\StringHelpers.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
+    <ClInclude Include="include\Utility.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
     <ClInclude Include="include\Window.hpp" />
     <ClInclude Include="include\WorldManager.hpp" />

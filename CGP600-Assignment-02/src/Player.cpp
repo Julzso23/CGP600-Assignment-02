@@ -35,28 +35,31 @@ void Player::update(float deltaTime)
     XMVECTOR positionOffset = XMVectorZero();
     if (GetKeyState('W') & 0x8000)
     {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + moveSpeed * deltaTime);
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + 1.f);
     }
     if (GetKeyState('S') & 0x8000)
     {
-        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - moveSpeed * deltaTime);
+        positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - 1.f);
     }
     if (GetKeyState('A') & 0x8000)
     {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - moveSpeed * deltaTime);
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - 1.f);
     }
     if (GetKeyState('D') & 0x8000)
     {
-        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + moveSpeed * deltaTime);
+        positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f);
     }
     if (GetKeyState(VK_SPACE) & 0x8000)
     {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + moveSpeed * deltaTime);
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + 1.f);
     }
     if (GetKeyState(VK_LCONTROL) & 0x8000)
     {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - moveSpeed * deltaTime);
+        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - 1.f);
     }
+
+    positionOffset = XMVector3Normalize(positionOffset);
+    positionOffset *= moveSpeed * deltaTime;
 
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));

@@ -1,5 +1,5 @@
 #include "Mesh.hpp"
-#include "StringHelpers.hpp"
+#include "Utility.hpp"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -105,7 +105,7 @@ void Mesh::loadFromFile(const char* fileName)
     std::string line;
     while (std::getline(file, line))
     {
-        std::vector<std::string> data = StringHelpers::split(line, ' ');
+        std::vector<std::string> data = Utility::split(line, ' ');
 
         if (data[0] == "v")
         {
@@ -138,7 +138,7 @@ void Mesh::loadFromFile(const char* fileName)
 
             for (int i = 1; i <= 3; i++)
             {
-                std::vector<std::string> vertexData = StringHelpers::split(data[i], '/');
+                std::vector<std::string> vertexData = Utility::split(data[i], '/');
 
                 int vertexIndex = std::atoi(vertexData[0].c_str());
                 Vertex vertex = newVertices[vertexIndex - 1];
