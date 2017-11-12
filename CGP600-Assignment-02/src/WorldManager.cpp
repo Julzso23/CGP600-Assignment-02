@@ -37,7 +37,7 @@ void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immedia
         {
             for (int z = 0; z < depth; z++)
             {
-                if (noiseGenerator.noise((float)x / (float)width, (float)y / (float)height, (float)z / (float)depth) > 0.4f)
+                if (noiseGenerator.noise((float)x / (float)width, (float)y / (float)height, (float)z / (float)depth) > 0.5f)
                 {
                     addBlock(x, y, z, { 0 });
                 }
@@ -141,7 +141,7 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     };
     immediateContext->PSSetShaderResources(0, ARRAYSIZE(shaderResources), &shaderResources[0]);
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    immediateContext->Draw(vertices.size(), 0);
+    immediateContext->Draw((UINT)vertices.size(), 0);
 }
 
 void WorldManager::update(float deltaTime)
