@@ -255,7 +255,7 @@ HRESULT Window::initialiseGraphics()
 
     D3D11_SAMPLER_DESC samplerDescription;
     ZeroMemory(&samplerDescription, sizeof(samplerDescription));
-    samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
     samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
