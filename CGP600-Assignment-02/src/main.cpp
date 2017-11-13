@@ -21,14 +21,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
     bool running = true;
     MSG message = { 0 };
 
-    std::thread updateThread([&window, &running]()
-    {
-        while (running)
-        {
-            window.update();
-        }
-    });
-
     std::thread renderThread([&window, &running]()
     {
         while (running)
@@ -50,9 +42,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
                 }
             }
         }
-    }
 
-    updateThread.join();
+        window.update();
+    }
     renderThread.join();
 
     return (int)message.wParam;

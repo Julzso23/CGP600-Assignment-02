@@ -25,7 +25,7 @@ XMVECTOR AABB::getHalf()
 
 XMVECTOR AABB::getCentre()
 {
-    return getPosition() + getHalf();
+    return getPosition();
 }
 
 // Point -> AABB collision test

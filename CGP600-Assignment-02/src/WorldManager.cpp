@@ -1,6 +1,7 @@
 #include "WorldManager.hpp"
 #include "ConstantBuffers.hpp"
 #include "PerlinNoise.hpp"
+#include "Utility.hpp"
 #include <random>
 
 int WorldManager::getBlockIndex(int x, int y, int z)
@@ -13,20 +14,22 @@ void WorldManager::removeBlock(int index)
     blocks[index] = nullptr;
 }
 
-WorldManager::WorldManager(HWND* windowHandle) :
+WorldManager::WorldManager() :
     width(64),
-    height(64),
+    height(32),
     depth(64),
-    blocks(width * height * depth),
-    player(windowHandle)
+    blocks(width * height * depth)
 {
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
     light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
     light.setAmbientColour(DirectX::XMVectorSet(0.2f, 0.2f, 0.2f, 1.f));
 }
 
-void WorldManager::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
+void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
+    player.initialise(windowHandle);
+    player.setPosition(XMVectorSet(0.f, 34.f, 0.f, 0.f));
+
     blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png"));
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
@@ -147,6 +150,29 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 void WorldManager::update(float deltaTime)
 {
     player.update(deltaTime);
+    int playerX = (int)floor(XMVectorGetX(player.getPosition()));
+    int playerY = (int)floor(XMVectorGetY(player.getPosition()));
+    int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
+
+    for (int x = Utility::clamp(playerX - 2, 0, width - 1); x < Utility::clamp(playerX + 2, 0, width - 1); x++)
+    {
+        for (int y = Utility::clamp(playerY - 2, 0, width - 1); y < Utility::clamp(playerY + 2, 0, width - 1); y++)
+        {
+            for (int z = Utility::clamp(playerZ - 2, 0, width - 1); z < Utility::clamp(playerZ + 2, 0, width - 1); z++)
+            {
+                Block* block = getBlock(x, y, z);
+                if (!block) continue;
+
+                std::unique_ptr<BlockDetails>& blockObject = blockDetails[block->id];
+                blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
+                Hit hit = blockObject->testIntersection(player);
+                if (hit.hit)
+                {
+                    player.setPosition(player.getPosition() + hit.delta);
+                }
+            }
+        }
+    }
 }
 
 void WorldManager::setCameraAspectRatio(UINT width, UINT height)

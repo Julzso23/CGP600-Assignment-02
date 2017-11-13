@@ -28,8 +28,8 @@ class WorldManager
         int getBlockIndex(int x, int y, int z);
         void removeBlock(int index);
     public:
-        WorldManager(HWND* windowHandle);
-        void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
+        WorldManager();
+        void initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
         Block* getBlock(int x, int y, int z);

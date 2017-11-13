@@ -2,8 +2,9 @@
 
 #include <string>
 #include "Mesh.hpp"
+#include "collision\AABB.hpp"
 
-class BlockDetails
+class BlockDetails : public AABB
 {
     private:
         std::string name;

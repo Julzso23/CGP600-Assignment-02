@@ -1,9 +1,12 @@
 #include "Player.hpp"
 #include <iostream>
 
-Player::Player(HWND* windowHandle) :
-    window(windowHandle)
+void Player::initialise(HWND* windowHandle)
 {
+    window = windowHandle;
+
+    setSize(XMVectorSet(1.f, 2.f, 1.f, 0.f));
+
     cameraOffset = XMVectorSet(0.f, 0.5f, 0.f, 0.f);
 
     RECT rect;
@@ -15,6 +18,11 @@ Player::Player(HWND* windowHandle) :
     camera.setClippingPlanes(0.1f, 1000.f);
     camera.setPosition(position + cameraOffset);
     camera.setAspectRatio(width, height);
+
+    keyboard = std::make_unique<Keyboard>();
+    mouse = std::make_unique<Mouse>();
+    mouse->SetWindow(*window);
+    mouse->SetMode(Mouse::MODE_RELATIVE);
 }
 
 Camera* Player::getCamera()
@@ -32,28 +40,30 @@ void Player::update(float deltaTime)
 {
     if (GetForegroundWindow() != *window) return;
 
+    Keyboard::State keyState = keyboard->GetState();
+
     XMVECTOR positionOffset = XMVectorZero();
-    if (GetKeyState('W') & 0x8000)
+    if (keyState.W)
     {
         positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) + 1.f);
     }
-    if (GetKeyState('S') & 0x8000)
+    if (keyState.S)
     {
         positionOffset = XMVectorSetZ(positionOffset, XMVectorGetZ(positionOffset) - 1.f);
     }
-    if (GetKeyState('A') & 0x8000)
+    if (keyState.A)
     {
         positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) - 1.f);
     }
-    if (GetKeyState('D') & 0x8000)
+    if (keyState.D)
     {
         positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f);
     }
-    if (GetKeyState(VK_SPACE) & 0x8000)
+    if (keyState.Space)
     {
         positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + 1.f);
     }
-    if (GetKeyState(VK_LCONTROL) & 0x8000)
+    if (keyState.LeftControl)
     {
         positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - 1.f);
     }
@@ -63,21 +73,14 @@ void Player::update(float deltaTime)
 
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
-
+    positionOffset += gravity * deltaTime;
     setPosition(getPosition() + positionOffset);
 
-    RECT rect;
-    GetClientRect(*window, &rect);
-    UINT width = rect.right - rect.left;
-    UINT height = rect.bottom - rect.top;
-
-    POINT mousePosition;
-    GetCursorPos(&mousePosition);
-    ScreenToClient(*window, &mousePosition);
+    Mouse::State mouseState = mouse->GetState();
 
     XMVECTOR rotation = camera.getRotation();
-    rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (mousePosition.x - (int)(width / 2)) / 10.f);
-    rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (mousePosition.y - (int)(height / 2)) / 10.f);
+    rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (float)mouseState.x * cameraRotateSpeed);
+    rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed);
     camera.setRotation(rotation);
 }
 

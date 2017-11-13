@@ -158,7 +158,7 @@ HRESULT Window::initialiseGraphics()
 {
     HRESULT result;
 
-    worldManager.initialise(device, immediateContext);
+    worldManager.initialise(&window, device, immediateContext);
 
     D3D11_BUFFER_DESC constantBuffer0Description;
     ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
@@ -271,7 +271,6 @@ HRESULT Window::initialiseGraphics()
 
     RECT rect;
     GetClientRect(window, &rect);
-    setCursorClip(rect, true);
 
     return S_OK;
 }
@@ -290,30 +289,7 @@ void Window::shutdownD3D()
     if (device) device->Release();
 }
 
-void Window::setCursorClip(RECT windowRect, bool shouldClip)
-{
-    ShowCursor(!shouldClip);
-    if (shouldClip)
-    {
-        POINT position;
-        position.x = 0;
-        position.y = 0;
-        ClientToScreen(window, &position);
-        RECT clipRect;
-        clipRect.left = position.x;
-        clipRect.right = position.x + windowRect.right;
-        clipRect.top = position.y;
-        clipRect.bottom = position.y + windowRect.bottom;
-        ClipCursor(&clipRect);
-    }
-    else
-    {
-        ClipCursor(NULL);
-    }
-}
-
-Window::Window() :
-    worldManager(&window)
+Window::Window()
 {
 }
 
@@ -402,20 +378,12 @@ void Window::update()
     float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
     updateLastTime = currentTime;
 
+    if (deltaTime > 0.5f)
+    {
+        deltaTime = 0.5f;
+    }
+
     worldManager.update(deltaTime);
-
-	if (GetForegroundWindow() != window) return;
-
-    RECT rect;
-    GetClientRect(window, &rect);
-    UINT width = rect.right - rect.left;
-    UINT height = rect.bottom - rect.top;
-
-    POINT mousePosition;
-    mousePosition.x = width / 2;
-    mousePosition.y = height / 2;
-    ClientToScreen(window, &mousePosition);
-    SetCursorPos(mousePosition.x, mousePosition.y);
 }
 
 void Window::renderFrame()
@@ -541,8 +509,36 @@ LRESULT Window::eventCallbackInternal(UINT message, WPARAM wParam, LPARAM lParam
 
             worldManager.setCameraAspectRatio(width, height);
 
-            setCursorClip(rect, true);
-
+            break;
+        }
+        case WM_ACTIVATEAPP:
+        {
+            Keyboard::ProcessMessage(message, wParam, lParam);
+            Mouse::ProcessMessage(message, wParam, lParam);
+            break;
+        }
+        case WM_INPUT:
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MOUSEWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP:
+        case WM_MOUSEHOVER:
+        {
+            Mouse::ProcessMessage(message, wParam, lParam);
+            break;
+        }
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        {
+            Keyboard::ProcessMessage(message, wParam, lParam);
             break;
         }
         default:
