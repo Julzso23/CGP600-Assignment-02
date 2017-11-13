@@ -59,21 +59,27 @@ void Player::update(float deltaTime)
     {
         positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f);
     }
-    if (keyState.Space)
-    {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) + 1.f);
-    }
-    if (keyState.LeftControl)
-    {
-        positionOffset = XMVectorSetY(positionOffset, XMVectorGetY(positionOffset) - 1.f);
-    }
 
     positionOffset = XMVector3Normalize(positionOffset);
     positionOffset *= moveSpeed * deltaTime;
 
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
-    positionOffset += gravity * deltaTime;
+
+    if (grounded)
+    {
+        if (keyState.Space)
+        {
+            velocity = jumpForce;
+        }
+        else
+        {
+            velocity = 0.f;
+        }
+    }
+    velocity += gravity * deltaTime;
+    positionOffset = XMVectorSetY(positionOffset, velocity * deltaTime);
+
     setPosition(getPosition() + positionOffset);
 
     Mouse::State mouseState = mouse->GetState();
@@ -82,9 +88,16 @@ void Player::update(float deltaTime)
     rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (float)mouseState.x * cameraRotateSpeed);
     rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed);
     camera.setRotation(rotation);
+
+    grounded = false;
 }
 
 void Player::setCameraAspectRatio(UINT width, UINT height)
 {
     camera.setAspectRatio(width, height);
+}
+
+void Player::setGrounded(bool value)
+{
+    grounded = value;
 }

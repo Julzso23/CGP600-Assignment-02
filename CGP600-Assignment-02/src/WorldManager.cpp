@@ -28,7 +28,7 @@ WorldManager::WorldManager() :
 void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
     player.initialise(windowHandle);
-    player.setPosition(XMVectorSet(0.f, 34.f, 0.f, 0.f));
+    player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
 
     blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png"));
 
@@ -150,25 +150,35 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 void WorldManager::update(float deltaTime)
 {
     player.update(deltaTime);
+
     int playerX = (int)floor(XMVectorGetX(player.getPosition()));
     int playerY = (int)floor(XMVectorGetY(player.getPosition()));
     int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
 
-    for (int x = Utility::clamp(playerX - 2, 0, width - 1); x < Utility::clamp(playerX + 2, 0, width - 1); x++)
+    for (int x = Utility::clamp(playerX - 2, 0, width - 1); x <= Utility::clamp(playerX + 2, 0, width - 1); x++)
     {
-        for (int y = Utility::clamp(playerY - 2, 0, width - 1); y < Utility::clamp(playerY + 2, 0, width - 1); y++)
+        for (int y = Utility::clamp(playerY - 2, 0, height - 1); y <= Utility::clamp(playerY + 2, 0, height - 1); y++)
         {
-            for (int z = Utility::clamp(playerZ - 2, 0, width - 1); z < Utility::clamp(playerZ + 2, 0, width - 1); z++)
+            for (int z = Utility::clamp(playerZ - 2, 0, depth - 1); z <= Utility::clamp(playerZ + 2, 0, depth - 1); z++)
             {
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
 
                 std::unique_ptr<BlockDetails>& blockObject = blockDetails[block->id];
-                blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
+                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
+                blockObject->setPosition(blockPosition);
                 Hit hit = blockObject->testIntersection(player);
                 if (hit.hit)
                 {
                     player.setPosition(player.getPosition() + hit.delta);
+                    if (XMVectorGetY(hit.delta) > 0.f)
+                    {
+                        XMVECTOR difference = XMVectorAbs(player.getPosition() - blockPosition);
+                        if (XMVectorGetX(difference) < 0.99f && XMVectorGetZ(difference) < 0.99f)
+                        {
+                            player.setGrounded(true);
+                        }
+                    }
                 }
             }
         }
