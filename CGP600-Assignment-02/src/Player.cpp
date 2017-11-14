@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "Utility.hpp"
 #include <iostream>
 
 void Player::initialise(HWND* windowHandle)
@@ -117,7 +118,7 @@ void Player::update(float deltaTime)
 
     XMVECTOR rotation = camera.getRotation();
     rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (float)mouseState.x * cameraRotateSpeed);
-    rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed);
+    rotation = XMVectorSetX(rotation, Utility::clamp(XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed, -90.f, 90.f));
     camera.setRotation(rotation);
 
     grounded = false;

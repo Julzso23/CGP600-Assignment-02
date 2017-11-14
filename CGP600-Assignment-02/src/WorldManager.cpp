@@ -30,8 +30,7 @@ int WorldManager::getBlockIndex(Segment ray)
                 if (!block) continue;
 
                 std::shared_ptr<BlockDetails>& blockObject = block->details;
-                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
-                blockObject->setPosition(blockPosition);
+                blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
                 {
