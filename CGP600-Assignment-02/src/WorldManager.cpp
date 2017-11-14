@@ -15,14 +15,16 @@ int WorldManager::getBlockIndex(Segment ray)
     int playerY = (int)floor(XMVectorGetY(player.getPosition()));
     int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
 
+    const int checkRange = 4;
+
     int currentBlock = -1;
     float currentTime = 1.f;
 
-    for (int x = Utility::clamp(playerX - 3, 0, width - 1); x <= Utility::clamp(playerX + 3, 0, width - 1); x++)
+    for (int x = Utility::clamp(playerX - checkRange, 0, width - 1); x <= Utility::clamp(playerX + checkRange, 0, width - 1); x++)
     {
-        for (int y = Utility::clamp(playerY - 3, 0, height - 1); y <= Utility::clamp(playerY + 3, 0, height - 1); y++)
+        for (int y = Utility::clamp(playerY - checkRange, 0, height - 1); y <= Utility::clamp(playerY + checkRange, 0, height - 1); y++)
         {
-            for (int z = Utility::clamp(playerZ - 3, 0, depth - 1); z <= Utility::clamp(playerZ + 3, 0, depth - 1); z++)
+            for (int z = Utility::clamp(playerZ - checkRange, 0, depth - 1); z <= Utility::clamp(playerZ + checkRange, 0, depth - 1); z++)
             {
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
@@ -122,7 +124,7 @@ void WorldManager::buildInstanceBuffer()
 
 WorldManager::WorldManager() :
     width(64),
-    height(32),
+    height(64),
     depth(64),
     blocks(width * height * depth)
 {
@@ -162,13 +164,15 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
 
+    const float scaleFactor = 16.f;
+
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
             for (int z = 0; z < depth; z++)
             {
-                if (noiseGenerator.noise((float)x / (float)width, (float)y / (float)height, (float)z / (float)depth) > 0.5f)
+                if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
                 {
                     addBlock(x, y, z, { blockDetails[0] });
                 }
@@ -262,11 +266,13 @@ void WorldManager::update(float deltaTime)
     int playerY = (int)floor(XMVectorGetY(player.getPosition()));
     int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
 
-    for (int x = Utility::clamp(playerX - 2, 0, width - 1); x <= Utility::clamp(playerX + 2, 0, width - 1); x++)
+    const int checkRange = 2;
+
+    for (int x = Utility::clamp(playerX - checkRange, 0, width - 1); x <= Utility::clamp(playerX + checkRange, 0, width - 1); x++)
     {
-        for (int y = Utility::clamp(playerY - 2, 0, height - 1); y <= Utility::clamp(playerY + 2, 0, height - 1); y++)
+        for (int y = Utility::clamp(playerY - checkRange, 0, height - 1); y <= Utility::clamp(playerY + checkRange, 0, height - 1); y++)
         {
-            for (int z = Utility::clamp(playerZ - 2, 0, depth - 1); z <= Utility::clamp(playerZ + 2, 0, depth - 1); z++)
+            for (int z = Utility::clamp(playerZ - checkRange, 0, depth - 1); z <= Utility::clamp(playerZ + checkRange, 0, depth - 1); z++)
             {
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
