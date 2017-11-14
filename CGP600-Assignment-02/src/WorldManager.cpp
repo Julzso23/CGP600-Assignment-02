@@ -20,11 +20,11 @@ int WorldManager::getBlockIndex(Segment ray)
     int currentBlock = -1;
     float currentTime = 1.f;
 
-    for (int x = Utility::clamp(playerX - checkRange, 0, width - 1); x <= Utility::clamp(playerX + checkRange, 0, width - 1); x++)
+    for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
     {
-        for (int y = Utility::clamp(playerY - checkRange, 0, height - 1); y <= Utility::clamp(playerY + checkRange, 0, height - 1); y++)
+        for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
         {
-            for (int z = Utility::clamp(playerZ - checkRange, 0, depth - 1); z <= Utility::clamp(playerZ + checkRange, 0, depth - 1); z++)
+            for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
@@ -268,11 +268,11 @@ void WorldManager::update(float deltaTime)
 
     const int checkRange = 2;
 
-    for (int x = Utility::clamp(playerX - checkRange, 0, width - 1); x <= Utility::clamp(playerX + checkRange, 0, width - 1); x++)
+    for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
     {
-        for (int y = Utility::clamp(playerY - checkRange, 0, height - 1); y <= Utility::clamp(playerY + checkRange, 0, height - 1); y++)
+        for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
         {
-            for (int z = Utility::clamp(playerZ - checkRange, 0, depth - 1); z <= Utility::clamp(playerZ + checkRange, 0, depth - 1); z++)
+            for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
