@@ -14,6 +14,7 @@ struct VIn
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
     float3 binormal : BINORMAL;
+    float3 instancePosition : TEXCOORD1;
 };
 
 struct VOut
@@ -32,7 +33,7 @@ SamplerState sampler0;
 VOut VShader(VIn input)
 {
     VOut output;
-    output.position = mul(worldViewProjection, float4(input.position.xyz, 1.f));
+    output.position = mul(worldViewProjection, float4(input.position.xyz + input.instancePosition, 1.f));
     output.colour = ambientLightColour;
     output.texcoord = input.texcoord;
 	output.normal = input.normal;

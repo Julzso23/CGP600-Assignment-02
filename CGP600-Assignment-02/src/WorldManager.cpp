@@ -9,9 +9,115 @@ int WorldManager::getBlockIndex(int x, int y, int z)
     return x + width * (y + height * z);
 }
 
+int WorldManager::getBlockIndex(Segment ray)
+{
+    int playerX = (int)floor(XMVectorGetX(player.getPosition()));
+    int playerY = (int)floor(XMVectorGetY(player.getPosition()));
+    int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
+
+    int currentBlock = -1;
+    float currentTime = 1.f;
+
+    for (int x = Utility::clamp(playerX - 3, 0, width - 1); x <= Utility::clamp(playerX + 3, 0, width - 1); x++)
+    {
+        for (int y = Utility::clamp(playerY - 3, 0, height - 1); y <= Utility::clamp(playerY + 3, 0, height - 1); y++)
+        {
+            for (int z = Utility::clamp(playerZ - 3, 0, depth - 1); z <= Utility::clamp(playerZ + 3, 0, depth - 1); z++)
+            {
+                Block* block = getBlock(x, y, z);
+                if (!block) continue;
+
+                std::shared_ptr<BlockDetails>& blockObject = block->details;
+                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
+                blockObject->setPosition(blockPosition);
+                Hit hit = blockObject->testIntersection(ray);
+                if (hit.hit)
+                {
+                    if (hit.time < currentTime)
+                    {
+                        currentTime = hit.time;
+                        currentBlock = getBlockIndex(x, y, z);
+                    }
+                }
+            }
+        }
+    }
+
+    return currentBlock;
+}
+
 void WorldManager::removeBlock(int index)
 {
     blocks[index] = nullptr;
+}
+
+void WorldManager::buildVertexBuffer()
+{
+    std::lock_guard<std::mutex> guard(mutex);
+
+    if (vertexBuffer)
+    {
+        vertexBuffer->Release();
+        vertexBuffer = nullptr;
+    }
+
+    vertices.clear();
+
+    std::vector<Vertex>* blockVertices = blockDetails[0]->getMesh()->getVertices();
+    vertices.insert(vertices.end(), blockVertices->begin(), blockVertices->end());
+
+    D3D11_BUFFER_DESC vertexBufferDescription;
+    ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
+    vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
+    vertexBufferDescription.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
+    vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    HRESULT result = device->CreateBuffer(&vertexBufferDescription, NULL, &vertexBuffer);
+
+    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+    immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+    memcpy(mappedSubresource.pData, vertices.data(), vertices.size() * sizeof(Vertex));
+    immediateContext->Unmap(vertexBuffer, NULL);
+}
+
+void WorldManager::buildInstanceBuffer()
+{
+    std::lock_guard<std::mutex> guard(mutex);
+
+    if (instanceBuffer)
+    {
+        instanceBuffer->Release();
+        instanceBuffer = nullptr;
+    }
+
+    instances.clear();
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int z = 0; z < depth; z++)
+            {
+                if (blocks[getBlockIndex(x, y, z)])
+                {
+                    instances.push_back({ XMVectorSet((float)x, (float)y, (float)z, 0.f) });
+                }
+            }
+        }
+    }
+
+    D3D11_BUFFER_DESC bufferDescription;
+    ZeroMemory(&bufferDescription, sizeof(bufferDescription));
+    bufferDescription.Usage = D3D11_USAGE_DEFAULT;
+    bufferDescription.ByteWidth = sizeof(BlockInstance) * (UINT)instances.size();
+    bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA instanceData;
+    ZeroMemory(&instanceData, sizeof(instanceData));
+    instanceData.pSysMem = instances.data();
+
+    device->CreateBuffer(&bufferDescription, &instanceData, &instanceBuffer);
 }
 
 WorldManager::WorldManager() :
@@ -25,12 +131,34 @@ WorldManager::WorldManager() :
     light.setAmbientColour(DirectX::XMVectorSet(0.2f, 0.2f, 0.2f, 1.f));
 }
 
+WorldManager::~WorldManager()
+{
+    if (vertexBuffer) vertexBuffer->Release();
+    if (instanceBuffer) instanceBuffer->Release();
+}
+
 void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
+    this->device = device;
+    this->immediateContext = immediateContext;
+
     player.initialise(windowHandle);
+    player.setBreakBlockFunction([&](Segment ray)
+    {
+        int index = getBlockIndex(ray);
+        if (index != -1)
+        {
+            removeBlock(index);
+            buildInstanceBuffer();
+        }
+    });
+    player.setPlaceBlockFunction([&](Segment ray)
+    {
+    });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
 
-    blockDetails[0] = std::move(std::make_unique<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png"));
+    blockDetails.push_back(std::move(std::make_shared<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png")));
+    blockDetails[0]->getMesh()->initialiseVertexBuffer(device, immediateContext);
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
 
@@ -42,7 +170,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
             {
                 if (noiseGenerator.noise((float)x / (float)width, (float)y / (float)height, (float)z / (float)depth) > 0.5f)
                 {
-                    addBlock(x, y, z, { 0 });
+                    addBlock(x, y, z, { blockDetails[0] });
                 }
             }
         }
@@ -71,42 +199,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         removeBlock(block);
     }
 
-    for (int x = 0; x < width; x++)
-    {
-        for (int y = 0; y < height; y++)
-        {
-            for (int z = 0; z < depth; z++)
-            {
-                Block* block = getBlock(x, y, z);
-                if (!block) continue;
+    buildInstanceBuffer();
 
-                Mesh* mesh = blockDetails[block->id]->getMesh();
-                mesh->setPosition(DirectX::XMVectorSet((float)x, (float)y, (float)z, 0.f));
-
-                std::vector<Vertex>* meshVertices = blockDetails[0]->getMesh()->getVertices();
-                for (Vertex vertex : *meshVertices)
-                {
-                    Vertex newVertex = vertex;
-                    newVertex.position = (DirectX::XMFLOAT4)DirectX::XMVector3Transform(DirectX::XMLoadFloat4(&vertex.position), mesh->getTransform()).vector4_f32;
-                    vertices.push_back(newVertex);
-                }
-            }
-        }
-    }
-
-    D3D11_BUFFER_DESC vertexBufferDescription;
-    ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
-    vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    vertexBufferDescription.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
-    vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    HRESULT result = device->CreateBuffer(&vertexBufferDescription, NULL, &vertexBuffer);
-
-    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-    immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, vertices.data(), vertices.size() * sizeof(Vertex));
-    immediateContext->Unmap(vertexBuffer, NULL);
+    buildVertexBuffer();
 }
 
 void WorldManager::addBlock(int x, int y, int z, Block value)
@@ -126,6 +221,8 @@ Block* WorldManager::getBlock(int x, int y, int z)
 
 void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0)
 {
+    std::lock_guard<std::mutex> guard(mutex);
+
     ConstantBuffer0 constantBuffer0Value = {
         player.getCamera()->getViewMatrix(),
         DirectX::XMVectorNegate(light.getDirection()),
@@ -136,15 +233,25 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
     immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
 
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
     ID3D11ShaderResourceView* shaderResources[] = {
         blockDetails[0]->getMesh()->getTexture(),
         blockDetails[0]->getMesh()->getNormalMap()
     };
     immediateContext->PSSetShaderResources(0, ARRAYSIZE(shaderResources), &shaderResources[0]);
-    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    immediateContext->Draw((UINT)vertices.size(), 0);
+
+    UINT strides[2] = {
+        sizeof(Vertex),
+        sizeof(BlockInstance)
+    };
+    UINT offsets[2] = { 0, 0 };
+
+    ID3D11Buffer* buffers[2] = {
+        vertexBuffer,
+        instanceBuffer
+    };
+
+    immediateContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+    immediateContext->DrawInstanced((UINT)vertices.size(), (UINT)instances.size(), 0, 0);
 }
 
 void WorldManager::update(float deltaTime)
@@ -164,7 +271,7 @@ void WorldManager::update(float deltaTime)
                 Block* block = getBlock(x, y, z);
                 if (!block) continue;
 
-                std::unique_ptr<BlockDetails>& blockObject = blockDetails[block->id];
+                std::shared_ptr<BlockDetails>& blockObject = block->details;
                 XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
                 blockObject->setPosition(blockPosition);
                 Hit hit = blockObject->testIntersection(player);

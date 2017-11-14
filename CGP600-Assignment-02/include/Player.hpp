@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include <Keyboard.h>
 #include <Mouse.h>
+#include <functional>
 
 class Player : public AABB
 {
@@ -18,6 +19,11 @@ class Player : public AABB
         bool grounded = false;
         float velocity = 0.f;
 
+        bool leftMouseButtonDown = false;
+        std::function<void(Segment ray)> breakBlock;
+        bool rightMouseButtonDown = false;
+        std::function<void(Segment ray)> placeBlock;
+
 		HWND* window;
 
         std::unique_ptr<DirectX::Keyboard> keyboard;
@@ -30,4 +36,7 @@ class Player : public AABB
         void update(float deltaTime);
 		void setCameraAspectRatio(UINT width, UINT height);
         void setGrounded(bool value);
+
+        void setBreakBlockFunction(std::function<void(Segment ray)> function);
+        void setPlaceBlockFunction(std::function<void(Segment ray)> function);
 };

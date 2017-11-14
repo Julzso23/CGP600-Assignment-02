@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include "BlockDetails.hpp"
 
 struct Block
 {
-    std::uint8_t id;
+    std::shared_ptr<BlockDetails> details;
 };

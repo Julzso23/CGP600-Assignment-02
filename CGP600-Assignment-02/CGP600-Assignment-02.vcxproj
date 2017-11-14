@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="include\Block.hpp" />
     <ClInclude Include="include\BlockDetails.hpp" />
+    <ClInclude Include="include\BlockInstance.hpp" />
     <ClInclude Include="include\collision\AABB.hpp" />
     <ClInclude Include="include\collision\Hit.hpp" />
     <ClInclude Include="include\collision\Segment.hpp" />

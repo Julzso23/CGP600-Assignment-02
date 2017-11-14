@@ -84,6 +84,37 @@ void Player::update(float deltaTime)
 
     Mouse::State mouseState = mouse->GetState();
 
+    Segment viewRay = {
+        camera.getPosition(),
+        XMVector3Transform(XMVectorSet(0.f, 0.f, 3.f, 0.f), XMMatrixRotationRollPitchYawFromVector(Transformable::vectorConvertToRadians(camera.getRotation())))
+    };
+
+    if (mouseState.leftButton)
+    {
+        if (!leftMouseButtonDown)
+        {
+            leftMouseButtonDown = true;
+            breakBlock(viewRay);
+        }
+    }
+    else
+    {
+        leftMouseButtonDown = false;
+    }
+
+    if (mouseState.rightButton)
+    {
+        if (!rightMouseButtonDown)
+        {
+            rightMouseButtonDown = true;
+            placeBlock(viewRay);
+        }
+    }
+    else
+    {
+        rightMouseButtonDown = false;
+    }
+
     XMVECTOR rotation = camera.getRotation();
     rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (float)mouseState.x * cameraRotateSpeed);
     rotation = XMVectorSetX(rotation, XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed);
@@ -100,4 +131,14 @@ void Player::setCameraAspectRatio(UINT width, UINT height)
 void Player::setGrounded(bool value)
 {
     grounded = value;
+}
+
+void Player::setBreakBlockFunction(std::function<void(Segment ray)> function)
+{
+    breakBlock = function;
+}
+
+void Player::setPlaceBlockFunction(std::function<void(Segment ray)> function)
+{
+    placeBlock = function;
 }

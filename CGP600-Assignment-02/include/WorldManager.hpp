@@ -4,6 +4,7 @@
 #include "BlockDetails.hpp"
 #include "Light.hpp"
 #include "Player.hpp"
+#include "BlockInstance.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -16,19 +17,28 @@ class WorldManager
         int depth;
 
         std::vector<std::unique_ptr<Block>> blocks;
-        std::map<std::uint8_t, std::unique_ptr<BlockDetails>> blockDetails;
+        std::vector<std::shared_ptr<BlockDetails>> blockDetails;
 
         ID3D11Buffer* vertexBuffer = nullptr;
         std::vector<Vertex> vertices;
+        ID3D11Buffer* instanceBuffer = nullptr;
+        std::vector<BlockInstance> instances;
+        ID3D11Device* device;
+        ID3D11DeviceContext* immediateContext;
+        mutable std::mutex mutex;
 
         Light light;
 
 		Player player;
 
         int getBlockIndex(int x, int y, int z);
+        int getBlockIndex(Segment ray);
         void removeBlock(int index);
+        void buildVertexBuffer();
+        void buildInstanceBuffer();
     public:
         WorldManager();
+        ~WorldManager();
         void initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
