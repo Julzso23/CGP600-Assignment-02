@@ -3,6 +3,7 @@
 #include "PerlinNoise.hpp"
 #include "Utility.hpp"
 #include <random>
+#include <WICTextureLoader.h>
 
 int WorldManager::getBlockIndex(int x, int y, int z)
 {
@@ -30,7 +31,6 @@ int WorldManager::getBlockIndex(Segment ray)
 				std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
-                std::shared_ptr<BlockDetails>& blockObject = block->details;
                 blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
@@ -53,36 +53,6 @@ void WorldManager::removeBlock(int index)
     blocks[index] = nullptr;
 }
 
-void WorldManager::buildVertexBuffer()
-{
-    std::lock_guard<std::mutex> guard(mutex);
-
-    if (vertexBuffer)
-    {
-        vertexBuffer->Release();
-        vertexBuffer = nullptr;
-    }
-
-    vertices.clear();
-
-    std::vector<Vertex>* blockVertices = blockDetails[0]->getMesh()->getVertices();
-    vertices.insert(vertices.end(), blockVertices->begin(), blockVertices->end());
-
-    D3D11_BUFFER_DESC vertexBufferDescription;
-    ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
-    vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
-    vertexBufferDescription.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
-    vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    HRESULT result = device->CreateBuffer(&vertexBufferDescription, NULL, &vertexBuffer);
-
-    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-    immediateContext->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, vertices.data(), vertices.size() * sizeof(Vertex));
-    immediateContext->Unmap(vertexBuffer, NULL);
-}
-
 void WorldManager::buildInstanceBuffer()
 {
     std::lock_guard<std::mutex> guard(mutex);
@@ -103,7 +73,7 @@ void WorldManager::buildInstanceBuffer()
             {
                 if (blocks[getBlockIndex(x, y, z)])
                 {
-                    instances.push_back({ XMVectorSet((float)x, (float)y, (float)z, 0.f) });
+                    instances.push_back({ XMVectorSet((float)x, (float)y, (float)z, 0.f), getBlock(x, y, z)->textureId });
                 }
             }
         }
@@ -135,7 +105,7 @@ WorldManager::WorldManager() :
 
 WorldManager::~WorldManager()
 {
-    if (vertexBuffer) vertexBuffer->Release();
+    if (textureAtlas) textureAtlas->Release();
     if (instanceBuffer) instanceBuffer->Release();
 }
 
@@ -159,8 +129,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
 
-    blockDetails.push_back(std::move(std::make_shared<BlockDetails>(device, immediateContext, "Dirt", "harshbricks-albedo.png", "harshbricks-normal.png")));
-    blockDetails[0]->getMesh()->initialiseVertexBuffer(device, immediateContext);
+	blockObject = std::make_unique<BlockObject>(device, immediateContext);
+
+	CreateWICTextureFromFile(device, immediateContext, L"textures/textureAtlas.png", NULL, &textureAtlas);
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
 
@@ -174,7 +145,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
             {
                 if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
                 {
-                    addBlock(x, y, z, { blockDetails[0] });
+                    addBlock(x, y, z, { 0 });
                 }
             }
         }
@@ -194,6 +165,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
                 {
                     toRemove.push_back(getBlockIndex(x, y, z));
                 }
+				else if (getBlock(x, y, z) && !getBlock(x, y + 1, z))
+				{
+					getBlock(x, y, z)->textureId = 1;
+				}
             }
         }
     }
@@ -204,8 +179,6 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     }
 
     buildInstanceBuffer();
-
-    buildVertexBuffer();
 }
 
 void WorldManager::addBlock(int x, int y, int z, Block value)
@@ -236,12 +209,7 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
     immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
-
-    ID3D11ShaderResourceView* shaderResources[] = {
-        blockDetails[0]->getMesh()->getTexture(),
-        blockDetails[0]->getMesh()->getNormalMap()
-    };
-    immediateContext->PSSetShaderResources(0, ARRAYSIZE(shaderResources), &shaderResources[0]);
+    immediateContext->PSSetShaderResources(0, 1, &textureAtlas);
 
     UINT strides[2] = {
         sizeof(Vertex),
@@ -249,13 +217,15 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     };
     UINT offsets[2] = { 0, 0 };
 
+	UINT vertexCount;
+
     ID3D11Buffer* buffers[2] = {
-        vertexBuffer,
+        blockObject->getMesh()->getVertexBuffer(&vertexCount),
         instanceBuffer
     };
 
     immediateContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
-    immediateContext->DrawInstanced((UINT)vertices.size(), (UINT)instances.size(), 0, 0);
+    immediateContext->DrawInstanced(vertexCount, (UINT)instances.size(), 0, 0);
 }
 
 void WorldManager::update(float deltaTime)
@@ -277,7 +247,6 @@ void WorldManager::update(float deltaTime)
 				std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
-                std::shared_ptr<BlockDetails>& blockObject = block->details;
                 XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
                 blockObject->setPosition(blockPosition);
                 Hit hit = blockObject->testIntersection(player);
@@ -287,7 +256,7 @@ void WorldManager::update(float deltaTime)
                     if (XMVectorGetY(hit.delta) != 0.f)
                     {
                         XMVECTOR difference = XMVectorAbs(player.getPosition() - blockPosition);
-                        if (XMVectorGetX(difference) < 0.99f && XMVectorGetZ(difference) < 0.99f)
+                        if (XMVectorGetX(difference) < XMVectorGetX(player.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(player.getSize()) - 0.01f)
                         {
 							if (XMVectorGetY(hit.delta) > 0.f)
 							{

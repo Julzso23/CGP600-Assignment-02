@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Block.hpp"
-#include "BlockDetails.hpp"
+#include "BlockObject.hpp"
 #include "Light.hpp"
 #include "Player.hpp"
 #include "BlockInstance.hpp"
@@ -17,14 +17,13 @@ class WorldManager
         int depth;
 
         std::vector<std::unique_ptr<Block>> blocks;
-        std::vector<std::shared_ptr<BlockDetails>> blockDetails;
 
-        ID3D11Buffer* vertexBuffer = nullptr;
-        std::vector<Vertex> vertices;
         ID3D11Buffer* instanceBuffer = nullptr;
         std::vector<BlockInstance> instances;
         ID3D11Device* device;
         ID3D11DeviceContext* immediateContext;
+		std::unique_ptr<BlockObject> blockObject;
+		ID3D11ShaderResourceView* textureAtlas = nullptr;
         mutable std::mutex mutex;
 
         Light light;
@@ -34,7 +33,6 @@ class WorldManager
         int getBlockIndex(int x, int y, int z);
         int getBlockIndex(Segment ray);
         void removeBlock(int index);
-        void buildVertexBuffer();
         void buildInstanceBuffer();
     public:
         WorldManager();

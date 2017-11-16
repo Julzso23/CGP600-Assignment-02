@@ -7,4 +7,5 @@
 struct BlockInstance
 {
     DirectX::XMVECTOR position;
+	UINT textureId;
 };

@@ -6,7 +6,7 @@ void Player::initialise(HWND* windowHandle)
 {
     window = windowHandle;
 
-    setSize(XMVectorSet(1.f, 2.f, 1.f, 0.f));
+    setSize(XMVectorSet(0.8f, 1.8f, 0.8f, 0.f));
 
     cameraOffset = XMVectorSet(0.f, 0.5f, 0.f, 0.f);
 
