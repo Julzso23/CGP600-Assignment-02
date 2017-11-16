@@ -67,16 +67,9 @@ void Player::update(float deltaTime)
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
 
-    if (grounded)
+    if (grounded && keyState.Space)
     {
-        if (keyState.Space)
-        {
-            velocity = jumpForce;
-        }
-        else
-        {
-            velocity = 0.f;
-        }
+        velocity = jumpForce;
     }
     velocity += gravity * deltaTime;
     positionOffset = XMVectorSetY(positionOffset, velocity * deltaTime);
@@ -132,6 +125,11 @@ void Player::setCameraAspectRatio(UINT width, UINT height)
 void Player::setGrounded(bool value)
 {
     grounded = value;
+}
+
+void Player::setVelocity(float value)
+{
+	velocity = value;
 }
 
 void Player::setBreakBlockFunction(std::function<void(Segment ray)> function)

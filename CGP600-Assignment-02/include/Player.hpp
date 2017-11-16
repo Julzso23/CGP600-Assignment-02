@@ -36,6 +36,7 @@ class Player : public AABB
         void update(float deltaTime);
 		void setCameraAspectRatio(UINT width, UINT height);
         void setGrounded(bool value);
+		void setVelocity(float value);
 
         void setBreakBlockFunction(std::function<void(Segment ray)> function);
         void setPlaceBlockFunction(std::function<void(Segment ray)> function);

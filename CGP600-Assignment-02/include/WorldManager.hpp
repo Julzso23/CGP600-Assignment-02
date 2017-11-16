@@ -42,7 +42,7 @@ class WorldManager
         void initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
-        Block* getBlock(int x, int y, int z);
+		std::unique_ptr<Block>& getBlock(int x, int y, int z);
         void renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0);
         void update(float deltaTime);
         void setCameraAspectRatio(UINT width, UINT height);

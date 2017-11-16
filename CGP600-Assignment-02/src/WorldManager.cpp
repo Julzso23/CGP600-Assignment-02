@@ -11,9 +11,10 @@ int WorldManager::getBlockIndex(int x, int y, int z)
 
 int WorldManager::getBlockIndex(Segment ray)
 {
-    int playerX = (int)floor(XMVectorGetX(player.getPosition()));
-    int playerY = (int)floor(XMVectorGetY(player.getPosition()));
-    int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
+	XMVECTOR playerPosition = player.getPosition();
+	int playerX = (int)floor(XMVectorGetX(playerPosition));
+	int playerY = (int)floor(XMVectorGetY(playerPosition));
+	int playerZ = (int)floor(XMVectorGetZ(playerPosition));
 
     const int checkRange = 4;
 
@@ -26,7 +27,7 @@ int WorldManager::getBlockIndex(Segment ray)
         {
             for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
-                Block* block = getBlock(x, y, z);
+				std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
                 std::shared_ptr<BlockDetails>& blockObject = block->details;
@@ -217,9 +218,9 @@ void WorldManager::removeBlock(int x, int y, int z)
     removeBlock(getBlockIndex(x, y, z));
 }
 
-Block* WorldManager::getBlock(int x, int y, int z)
+std::unique_ptr<Block>& WorldManager::getBlock(int x, int y, int z)
 {
-    return blocks[getBlockIndex(x, y, z)].get();
+    return blocks[getBlockIndex(x, y, z)];
 }
 
 void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0)
@@ -273,7 +274,7 @@ void WorldManager::update(float deltaTime)
         {
             for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
-                Block* block = getBlock(x, y, z);
+				std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
                 std::shared_ptr<BlockDetails>& blockObject = block->details;
@@ -283,12 +284,16 @@ void WorldManager::update(float deltaTime)
                 if (hit.hit)
                 {
                     player.setPosition(player.getPosition() + hit.delta);
-                    if (XMVectorGetY(hit.delta) > 0.f)
+                    if (XMVectorGetY(hit.delta) != 0.f)
                     {
                         XMVECTOR difference = XMVectorAbs(player.getPosition() - blockPosition);
                         if (XMVectorGetX(difference) < 0.99f && XMVectorGetZ(difference) < 0.99f)
                         {
-                            player.setGrounded(true);
+							if (XMVectorGetY(hit.delta) > 0.f)
+							{
+								player.setGrounded(true);
+							}
+							player.setVelocity(0.f);
                         }
                     }
                 }
