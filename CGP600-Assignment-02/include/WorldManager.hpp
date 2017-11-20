@@ -23,7 +23,7 @@ class WorldManager
         ID3D11Device* device;
         ID3D11DeviceContext* immediateContext;
 		std::unique_ptr<BlockObject> blockObject;
-		ID3D11ShaderResourceView* textureAtlas = nullptr;
+		std::vector<ID3D11ShaderResourceView*> textures;
         mutable std::mutex mutex;
 
         Light light;

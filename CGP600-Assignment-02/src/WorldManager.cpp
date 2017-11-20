@@ -73,7 +73,10 @@ void WorldManager::buildInstanceBuffer()
             {
                 if (blocks[getBlockIndex(x, y, z)])
                 {
-                    instances.push_back({ XMVectorSet((float)x, (float)y, (float)z, 0.f), getBlock(x, y, z)->textureId });
+                    BlockInstance instance;
+                    instance.position = XMFLOAT3((float)x, (float)y, (float)z);
+                    instance.textureId = (float)getBlock(x, y, z)->textureId;
+                    instances.push_back(instance);
                 }
             }
         }
@@ -100,12 +103,16 @@ WorldManager::WorldManager() :
 {
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
     light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
-    light.setAmbientColour(DirectX::XMVectorSet(0.2f, 0.2f, 0.2f, 1.f));
+    light.setAmbientColour(DirectX::XMVectorSet(0.3f, 0.3f, 0.3f, 1.f));
 }
 
 WorldManager::~WorldManager()
 {
-    if (textureAtlas) textureAtlas->Release();
+    for (ID3D11ShaderResourceView* texture : textures)
+    {
+        texture->Release();
+    }
+
     if (instanceBuffer) instanceBuffer->Release();
 }
 
@@ -131,7 +138,16 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
 
 	blockObject = std::make_unique<BlockObject>(device, immediateContext);
 
-	CreateWICTextureFromFile(device, immediateContext, L"textures/textureAtlas.png", NULL, &textureAtlas);
+    ID3D11ShaderResourceView* texture = nullptr;
+
+	CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-albedo.png", NULL, &texture);
+    textures.push_back(texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-normal.png", NULL, &texture);
+    textures.push_back(texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/grass1-albedo.png", NULL, &texture);
+    textures.push_back(texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/grass1-normal.png", NULL, &texture);
+    textures.push_back(texture);
 
     PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
 
@@ -209,7 +225,7 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
     immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
-    immediateContext->PSSetShaderResources(0, 1, &textureAtlas);
+    immediateContext->PSSetShaderResources(0, (UINT)textures.size(), textures.data());
 
     UINT strides[2] = {
         sizeof(Vertex),

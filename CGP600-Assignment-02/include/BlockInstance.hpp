@@ -6,6 +6,6 @@
 
 struct BlockInstance
 {
-    DirectX::XMVECTOR position;
-	UINT textureId;
+    DirectX::XMFLOAT3 position;
+	float textureId;
 };

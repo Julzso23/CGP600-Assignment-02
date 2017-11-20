@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Windows.h>
+
 struct Block
 {
-	unsigned int textureId;
+    UINT textureId;
 };
