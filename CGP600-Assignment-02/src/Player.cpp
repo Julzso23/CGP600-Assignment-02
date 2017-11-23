@@ -71,7 +71,13 @@ void Player::update(float deltaTime)
     {
         velocity = jumpForce;
     }
+
     velocity += gravity * deltaTime;
+    if (velocity > terminalVelocity)
+    {
+        velocity = terminalVelocity;
+    }
+
     positionOffset = XMVectorSetY(positionOffset, velocity * deltaTime);
 
     setPosition(getPosition() + positionOffset);

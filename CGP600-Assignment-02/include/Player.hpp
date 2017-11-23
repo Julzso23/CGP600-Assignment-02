@@ -15,6 +15,7 @@ class Player : public AABB
         const float cameraRotateSpeed = 0.1f;
         const float gravity = -9.8f;
         const float jumpForce = 5.f;
+        const float terminalVelocity = 54.f;
 
         bool grounded = false;
         float velocity = 0.f;
