@@ -65,7 +65,16 @@ void Player::update(float deltaTime)
     }
 
     positionOffset = XMVector3Normalize(positionOffset); // Stop the player moving faster in a diagonal direction
-    positionOffset *= moveSpeed * deltaTime;
+    if (keyState.LeftShift)
+    {
+        camera.setFieldOfView(70.f);
+        positionOffset *= moveSpeed * 2.f * deltaTime;
+    }
+    else
+    {
+        camera.setFieldOfView(60.f);
+        positionOffset *= moveSpeed * deltaTime;
+    }
 
     // Move in the direction of the camera
     float cameraAngle = XMVectorGetY(camera.getRotation());
