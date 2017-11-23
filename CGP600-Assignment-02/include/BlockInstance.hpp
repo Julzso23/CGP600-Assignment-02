@@ -7,5 +7,5 @@
 struct BlockInstance
 {
     DirectX::XMFLOAT3 position;
-	float textureId;
+	UINT textureId;
 };

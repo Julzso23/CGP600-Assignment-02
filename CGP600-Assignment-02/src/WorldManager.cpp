@@ -75,7 +75,7 @@ void WorldManager::buildInstanceBuffer()
                 {
                     BlockInstance instance;
                     instance.position = XMFLOAT3((float)x, (float)y, (float)z);
-                    instance.textureId = (float)getBlock(x, y, z)->textureId;
+                    instance.textureId = getBlock(x, y, z)->textureId;
                     instances.push_back(instance);
                 }
             }
@@ -181,10 +181,20 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
                 {
                     toRemove.push_back(getBlockIndex(x, y, z));
                 }
-				else if (getBlock(x, y, z) && !getBlock(x, y + 1, z))
-				{
-					getBlock(x, y, z)->textureId = 1;
-				}
+            }
+        }
+    }
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int z = 0; z < depth; z++)
+            {
+                if (getBlock(x, y, z) && ((y == height - 1) || !getBlock(x, y + 1, z)))
+                {
+                    getBlock(x, y, z)->textureId = 1;
+                }
             }
         }
     }
@@ -284,6 +294,12 @@ void WorldManager::update(float deltaTime)
                 }
             }
         }
+    }
+
+    if (XMVectorGetY(player.getPosition()) < -10.f)
+    {
+        player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+        player.setVelocity(0.f);
     }
 }
 

@@ -14,8 +14,8 @@ struct VIn
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
     float3 binormal : BINORMAL;
-    float3 instancePosition : TEXCOORD1;
-    float textureId : TEXCOORD2;
+    float3 instancePosition : INST_POSITION;
+    uint textureId : TEXID;
 };
 
 struct VOut
@@ -26,7 +26,7 @@ struct VOut
 	float3 normal : NORMAL;
     float3 tangent : TANGENT;
     float3 binormal : BINORMAL;
-    float textureId : TEXCOORD2;
+    uint textureId : TEXID;
 };
 
 Texture2D textures[4];
@@ -36,7 +36,7 @@ VOut VShader(VIn input)
 {
     VOut output;
     output.position = mul(worldViewProjection, float4(input.position.xyz + input.instancePosition, 1.f));
-    output.colour = /*ambientLightColour*/float4(input.textureId / 10.f, 1.f - input.textureId / 10.f, 0.f, 1.f);
+    output.colour = ambientLightColour;
     output.texcoord = input.texcoord / 2.f;
 	output.normal = input.normal;
     output.tangent = input.tangent;
