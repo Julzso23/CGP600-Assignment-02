@@ -386,6 +386,11 @@ void Window::update()
     }
 
     worldManager.update(deltaTime);
+
+    if ((GetKeyState(VK_MENU) & 0x8000) && (GetKeyState(VK_F4) & 0x8000))
+    {
+        PostQuitMessage(0);
+    }
 }
 
 void Window::renderFrame()
