@@ -50,15 +50,21 @@ float4 PShader(VOut input) : SV_TARGET
     float4 textureColour;
     float4 normalColour;
 
-    if (input.textureId == 0)
+    switch (input.textureId)
     {
-        textureColour = textures[0].Sample(sampler0, input.texcoord);
-        normalColour = textures[1].Sample(sampler0, input.texcoord);
-    }
-    else
-    {
-        textureColour = textures[2].Sample(sampler0, input.texcoord);
-        normalColour = textures[3].Sample(sampler0, input.texcoord);
+        default:
+        case 0:
+        {
+            textureColour = textures[0].Sample(sampler0, input.texcoord);
+            normalColour = textures[1].Sample(sampler0, input.texcoord);
+            break;
+        }
+        case 1:
+        {
+            textureColour = textures[2].Sample(sampler0, input.texcoord);
+            normalColour = textures[3].Sample(sampler0, input.texcoord);
+            break;
+        }
     }
     
     float3 normal = (normalColour.xyz * 2.f) - 1.f;
