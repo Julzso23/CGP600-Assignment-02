@@ -10,6 +10,7 @@ int WorldManager::getBlockIndex(int x, int y, int z)
     return x + width * (y + height * z);
 }
 
+// Get the index of the first block intersecting a ray
 int WorldManager::getBlockIndex(Segment ray)
 {
 	XMVECTOR playerPosition = player.getPosition();
@@ -20,17 +21,20 @@ int WorldManager::getBlockIndex(Segment ray)
     const int checkRange = 4;
 
     int currentBlock = -1;
-    float currentTime = 1.f;
+    float currentTime = 1.f; // [0-1] Represents how far along the ray the collision occured
 
+    // Only bother checking around the player in a small radius for performance reasons
     for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
     {
         for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
         {
             for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
+                // Make sure there's a block here
 				std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
+                // Re-use a single block object moved to the current position to save memory
                 blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
@@ -55,8 +59,10 @@ void WorldManager::removeBlock(int index)
 
 void WorldManager::buildInstanceBuffer()
 {
+    // Hold up the render thread to prevent bad data being read
     std::lock_guard<std::mutex> guard(mutex);
 
+    // Get rid of the old instance buffer
     if (instanceBuffer)
     {
         instanceBuffer->Release();
@@ -65,12 +71,14 @@ void WorldManager::buildInstanceBuffer()
 
     instances.clear();
 
+    // Loop through the world
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
             for (int z = 0; z < depth; z++)
             {
+                // If there's a block, make an instance
                 if (blocks[getBlockIndex(x, y, z)])
                 {
                     BlockInstance instance;
@@ -82,6 +90,7 @@ void WorldManager::buildInstanceBuffer()
         }
     }
 
+    // Make the buffer
     D3D11_BUFFER_DESC bufferDescription;
     ZeroMemory(&bufferDescription, sizeof(bufferDescription));
     bufferDescription.Usage = D3D11_USAGE_DEFAULT;
@@ -96,11 +105,9 @@ void WorldManager::buildInstanceBuffer()
 }
 
 WorldManager::WorldManager() :
-    width(64),
-    height(64),
-    depth(64),
     blocks(width * height * depth)
 {
+    // Setup the directional light
     light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
     light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
     light.setAmbientColour(DirectX::XMVectorSet(0.3f, 0.3f, 0.3f, 1.f));
@@ -264,6 +271,8 @@ void WorldManager::update(float deltaTime)
 
     const int checkRange = 2;
 
+    XMVECTOR hitDelta = XMVectorZero();
+
     for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
     {
         for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
@@ -278,7 +287,8 @@ void WorldManager::update(float deltaTime)
                 Hit hit = blockObject->testIntersection(player);
                 if (hit.hit)
                 {
-                    player.setPosition(player.getPosition() + hit.delta);
+                    hitDelta += hit.delta;
+
                     if (XMVectorGetY(hit.delta) != 0.f)
                     {
                         XMVECTOR difference = XMVectorAbs(player.getPosition() - blockPosition);
@@ -295,6 +305,8 @@ void WorldManager::update(float deltaTime)
             }
         }
     }
+
+    player.setPosition(player.getPosition() + hitDelta);
 
     if (XMVectorGetY(player.getPosition()) < -10.f)
     {

@@ -13,12 +13,14 @@ class Player : public AABB
         XMVECTOR cameraOffset;
 		const float moveSpeed = 4.f;
         const float cameraRotateSpeed = 0.1f;
+        const float cameraRotateLimit = 170.f; // Vertical limit of rotation in degrees
         const float gravity = -9.8f;
         const float jumpForce = 5.f;
-        const float terminalVelocity = 54.f;
+        const float terminalVelocity = -54.f; // Maximum vertical velocity
+        const float reach = 3.f; // Max distance to interact with blocks
 
-        bool grounded = false;
-        float velocity = 0.f;
+        bool grounded = false; // Is the player touching the ground
+        float velocity = 0.f; // Vertical velocity
 
         bool leftMouseButtonDown = false;
         std::function<void(Segment ray)> breakBlock;

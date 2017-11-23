@@ -6,7 +6,7 @@ void Player::initialise(HWND* windowHandle)
 {
     window = windowHandle;
 
-    setSize(XMVectorSet(0.8f, 1.8f, 0.8f, 0.f));
+    setSize(XMVectorSet(0.8f, 1.8f, 0.8f, 0.f)); // Collider size
 
     cameraOffset = XMVectorSet(0.f, 0.5f, 0.f, 0.f);
 
@@ -31,6 +31,7 @@ Camera* Player::getCamera()
     return &camera;
 }
 
+// Update camera position when moving the player
 void Player::setPosition(XMVECTOR position)
 {
     Transformable::setPosition(position);
@@ -39,10 +40,12 @@ void Player::setPosition(XMVECTOR position)
 
 void Player::update(float deltaTime)
 {
+    // Stop player input when the window is not focused
     if (GetForegroundWindow() != *window) return;
 
     Keyboard::State keyState = keyboard->GetState();
 
+    // Get player movement input
     XMVECTOR positionOffset = XMVectorZero();
     if (keyState.W)
     {
@@ -61,32 +64,36 @@ void Player::update(float deltaTime)
         positionOffset = XMVectorSetX(positionOffset, XMVectorGetX(positionOffset) + 1.f);
     }
 
-    positionOffset = XMVector3Normalize(positionOffset);
+    positionOffset = XMVector3Normalize(positionOffset); // Stop the player moving faster in a diagonal direction
     positionOffset *= moveSpeed * deltaTime;
 
+    // Move in the direction of the camera
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
 
+    // Make sure the player is on the ground before jumping
     if (grounded && keyState.Space)
     {
         velocity = jumpForce;
     }
 
+    // Add gravity and clamp to terminal velocity
     velocity += gravity * deltaTime;
-    if (velocity > terminalVelocity)
+    if (velocity < terminalVelocity)
     {
         velocity = terminalVelocity;
     }
 
     positionOffset = XMVectorSetY(positionOffset, velocity * deltaTime);
 
-    setPosition(getPosition() + positionOffset);
+    setPosition(getPosition() + positionOffset); // Move the player
 
     Mouse::State mouseState = mouse->GetState();
 
+    // Create a ray for raycasting when breaking/placing blocks
     Segment viewRay = {
         camera.getPosition(),
-        XMVector3Transform(XMVectorSet(0.f, 0.f, 3.f, 0.f), XMMatrixRotationRollPitchYawFromVector(Transformable::vectorConvertToRadians(camera.getRotation())))
+        XMVector3Transform(XMVectorSet(0.f, 0.f, reach, 0.f), XMMatrixRotationRollPitchYawFromVector(Transformable::vectorConvertToRadians(camera.getRotation())))
     };
 
     if (mouseState.leftButton)
@@ -115,9 +122,10 @@ void Player::update(float deltaTime)
         rightMouseButtonDown = false;
     }
 
+    // Rotate camera by mouse input
     XMVECTOR rotation = camera.getRotation();
     rotation = XMVectorSetY(rotation, XMVectorGetY(rotation) + (float)mouseState.x * cameraRotateSpeed);
-    rotation = XMVectorSetX(rotation, Utility::clamp(XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed, -90.f, 90.f));
+    rotation = XMVectorSetX(rotation, Utility::clamp(XMVectorGetX(rotation) + (float)mouseState.y * cameraRotateSpeed, -cameraRotateLimit / 2.f, cameraRotateLimit / 2.f));
     camera.setRotation(rotation);
 
     grounded = false;

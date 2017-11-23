@@ -12,16 +12,16 @@
 class WorldManager
 {
     private:
-        int width;
-        int height;
-        int depth;
+        const int width = 64;
+        const int height = 64;
+        const int depth = 64;
 
         std::vector<std::unique_ptr<Block>> blocks;
 
         ID3D11Buffer* instanceBuffer = nullptr;
         std::vector<BlockInstance> instances;
-        ID3D11Device* device;
-        ID3D11DeviceContext* immediateContext;
+        ID3D11Device* device = nullptr;
+        ID3D11DeviceContext* immediateContext = nullptr;
 		std::unique_ptr<BlockObject> blockObject;
 		std::vector<ID3D11ShaderResourceView*> textures;
         mutable std::mutex mutex;
