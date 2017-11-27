@@ -15,6 +15,7 @@ class Mesh
         ID3D11VertexShader* vertexShader = nullptr;
         ID3D11PixelShader* pixelShader = nullptr;
         ID3D11InputLayout* inputLayout = nullptr;
+        ID3D11SamplerState* sampler0 = nullptr;
 
         ID3D11ShaderResourceView* texture = nullptr;
         ID3D11ShaderResourceView* normalMap = nullptr;
@@ -37,7 +38,7 @@ class Mesh
         ID3D11ShaderResourceView* getTexture() const;
         ID3D11ShaderResourceView* getNormalMap() const;
 
-        void loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions);
+        void loadShaders(LPWSTR path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, UINT descriptionCount);
         void setShaders(ID3D11DeviceContext* immediateContext);
 
         void setPosition(DirectX::XMVECTOR position);

@@ -122,7 +122,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="include\Enemy.cpp" />
+    <ClCompile Include="src\Enemy.cpp" />
     <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\PerlinNoise.cpp" />

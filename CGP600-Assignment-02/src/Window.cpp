@@ -174,33 +174,6 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
-    D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "INST_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-        { "TEXID", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
-    };
-
-    D3D11_SAMPLER_DESC samplerDescription;
-    ZeroMemory(&samplerDescription, sizeof(samplerDescription));
-    samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
-    samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-
-    result = device->CreateSamplerState(&samplerDescription, &sampler0);
-
-    if (FAILED(result))
-    {
-        OutputDebugString("#### Failed to create sampler state! ####");
-        return result;
-    }
-
     RECT rect;
     GetClientRect(window, &rect);
 
@@ -209,7 +182,6 @@ HRESULT Window::initialiseGraphics()
 
 void Window::shutdownD3D()
 {
-    if (sampler0) sampler0->Release();
     if (zBuffer) zBuffer->Release();
     if (constantBuffer0) constantBuffer0->Release();
     if (backBufferRTView) backBufferRTView->Release();
@@ -331,8 +303,6 @@ void Window::renderFrame()
 
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-    immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    immediateContext->PSSetSamplers(0, 1, &sampler0);
 
     worldManager.renderFrame(immediateContext, constantBuffer0);
 

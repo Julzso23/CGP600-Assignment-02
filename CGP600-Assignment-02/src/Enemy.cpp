@@ -7,6 +7,8 @@ Mesh* Enemy::getMesh()
 
 void Enemy::draw(ID3D11DeviceContext* immediateContext)
 {
+    mesh.setShaders(immediateContext);
+
     ID3D11ShaderResourceView* textures[] = {
         mesh.getTexture(),
         mesh.getNormalMap()

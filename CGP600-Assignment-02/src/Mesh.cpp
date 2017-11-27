@@ -71,7 +71,7 @@ ID3D11ShaderResourceView* Mesh::getNormalMap() const
     return normalMap;
 }
 
-void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions)
+void Mesh::loadShaders(LPWSTR path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, UINT descriptionCount)
 {
     ID3DBlob* vertShader = nullptr;
     ID3DBlob* pixShader = nullptr;
@@ -83,7 +83,7 @@ void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEME
 #endif
 
     // Vertex shader compile
-    HRESULT result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VShader", "vs_5_0", flags, NULL, &vertShader, &error);
+    HRESULT result = D3DCompileFromFile(path, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VShader", "vs_5_0", flags, NULL, &vertShader, &error);
     if (error != 0)
     {
         OutputDebugString((char*)error->GetBufferPointer());
@@ -96,7 +96,7 @@ void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEME
     }
 
     // Pixel shader compile
-    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PShader", "ps_5_0", flags, NULL, &pixShader, &error);
+    result = D3DCompileFromFile(path, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PShader", "ps_5_0", flags, NULL, &pixShader, &error);
     if (error != 0)
     {
         OutputDebugString((char*)error->GetBufferPointer());
@@ -126,7 +126,7 @@ void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEME
 
     result = device->CreateInputLayout(
         inputElementDescriptions,
-        sizeof(inputElementDescriptions) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+        descriptionCount,
         vertShader->GetBufferPointer(),
         vertShader->GetBufferSize(),
         &inputLayout
@@ -137,13 +137,31 @@ void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEME
         OutputDebugString("#### Failed to create input layout! ####\n");
         //return result;
     }
+
+    D3D11_SAMPLER_DESC samplerDescription;
+    ZeroMemory(&samplerDescription, sizeof(samplerDescription));
+    samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
+    samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+
+    result = device->CreateSamplerState(&samplerDescription, &sampler0);
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create sampler state! ####");
+        //return result;
+    }
 }
 
 void Mesh::setShaders(ID3D11DeviceContext* immediateContext)
 {
+    immediateContext->IASetInputLayout(inputLayout);
     immediateContext->VSSetShader(vertexShader, 0, 0);
     immediateContext->PSSetShader(pixelShader, 0, 0);
-    immediateContext->IASetInputLayout(inputLayout);
+    immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    immediateContext->PSSetSamplers(0, 1, &sampler0);
 }
 
 Mesh::Mesh()
@@ -158,6 +176,7 @@ Mesh::~Mesh()
     if (vertexBuffer) vertexBuffer->Release();
     if (texture) texture->Release();
     if (normalMap) normalMap->Release();
+    if (sampler0) sampler0->Release();
     if (inputLayout) inputLayout->Release();
     if (vertexShader) vertexShader->Release();
     if (pixelShader) pixelShader->Release();
