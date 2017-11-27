@@ -15,7 +15,7 @@ void Player::initialise(HWND* windowHandle)
     UINT width = rect.right - rect.left;
     UINT height = rect.bottom - rect.top;
 
-    camera.setFieldOfView(60.f);
+    camera.setFieldOfView(fieldOfView);
     camera.setClippingPlanes(0.1f, 1000.f);
     camera.setPosition(position + cameraOffset);
     camera.setAspectRatio(width, height);
@@ -67,12 +67,12 @@ void Player::update(float deltaTime)
     positionOffset = XMVector3Normalize(positionOffset); // Stop the player moving faster in a diagonal direction
     if (keyState.LeftShift)
     {
-        camera.setFieldOfView(70.f);
+        camera.setFieldOfView(sprintFieldOfView);
         positionOffset *= moveSpeed * 2.f * deltaTime;
     }
     else
     {
-        camera.setFieldOfView(60.f);
+        camera.setFieldOfView(fieldOfView);
         positionOffset *= moveSpeed * deltaTime;
     }
 

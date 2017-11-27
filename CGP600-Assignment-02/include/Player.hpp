@@ -18,6 +18,8 @@ class Player : public AABB
         const float jumpForce = 5.f;
         const float terminalVelocity = -54.f; // Maximum vertical velocity
         const float reach = 3.f; // Max distance to interact with blocks
+        const float fieldOfView = 60.f;
+        const float sprintFieldOfView = 70.f;
 
         bool grounded = false; // Is the player touching the ground
         float velocity = 0.f; // Vertical velocity
