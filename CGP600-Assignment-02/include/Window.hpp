@@ -23,9 +23,6 @@ class Window
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
         float* backgroundClearColour;
-        ID3D11VertexShader* vertexShader;
-        ID3D11PixelShader* pixelShader;
-        ID3D11InputLayout* inputLayout;
         ID3D11Buffer* constantBuffer0;
         ID3D11DepthStencilView* zBuffer;
         ID3D11SamplerState* sampler0;

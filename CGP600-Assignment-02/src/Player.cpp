@@ -6,8 +6,6 @@ void Player::initialise(HWND* windowHandle)
 {
     window = windowHandle;
 
-    setSize(XMVectorSet(0.8f, 1.8f, 0.8f, 0.f)); // Collider size
-
     cameraOffset = XMVectorSet(0.f, 0.5f, 0.f, 0.f);
 
     RECT rect;
@@ -40,6 +38,8 @@ void Player::setPosition(XMVECTOR position)
 
 void Player::update(float deltaTime)
 {
+    Character::update(deltaTime);
+
     // Stop player input when the window is not focused
     if (GetForegroundWindow() != *window) return;
 
@@ -80,22 +80,14 @@ void Player::update(float deltaTime)
     float cameraAngle = XMVectorGetY(camera.getRotation());
     positionOffset = XMVector3Transform(positionOffset, XMMatrixRotationY(XMConvertToRadians(cameraAngle)));
 
-    // Make sure the player is on the ground before jumping
-    if (grounded && keyState.Space)
+    if (keyState.Space)
     {
-        velocity = jumpForce;
-    }
-
-    // Add gravity and clamp to terminal velocity
-    velocity += gravity * deltaTime;
-    if (velocity < terminalVelocity)
-    {
-        velocity = terminalVelocity;
+        jump();
     }
 
     positionOffset = XMVectorSetY(positionOffset, velocity * deltaTime);
 
-    setPosition(getPosition() + positionOffset); // Move the player
+    move(positionOffset); // Move the player
 
     Mouse::State mouseState = mouse->GetState();
 
@@ -143,16 +135,6 @@ void Player::update(float deltaTime)
 void Player::setCameraAspectRatio(UINT width, UINT height)
 {
     camera.setAspectRatio(width, height);
-}
-
-void Player::setGrounded(bool value)
-{
-    grounded = value;
-}
-
-void Player::setVelocity(float value)
-{
-	velocity = value;
 }
 
 void Player::setBreakBlockFunction(std::function<void(Segment ray)> function)

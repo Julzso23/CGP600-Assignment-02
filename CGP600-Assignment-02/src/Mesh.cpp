@@ -5,6 +5,7 @@
 #include <string>
 #include <Windows.h>
 #include <WICTextureLoader.h>
+#include <d3dcompiler.h>
 
 using namespace DirectX;
 
@@ -70,6 +71,81 @@ ID3D11ShaderResourceView* Mesh::getNormalMap() const
     return normalMap;
 }
 
+void Mesh::loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions)
+{
+    ID3DBlob* vertShader = nullptr;
+    ID3DBlob* pixShader = nullptr;
+    ID3DBlob* error = nullptr;
+
+    UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    flags |= D3DCOMPILE_DEBUG;
+#endif
+
+    // Vertex shader compile
+    HRESULT result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VShader", "vs_5_0", flags, NULL, &vertShader, &error);
+    if (error != 0)
+    {
+        OutputDebugString((char*)error->GetBufferPointer());
+        error->Release();
+        if (FAILED(result))
+        {
+            OutputDebugString("#### Failed to compile vertex shader! ####\n");
+            //return result;
+        }
+    }
+
+    // Pixel shader compile
+    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PShader", "ps_5_0", flags, NULL, &pixShader, &error);
+    if (error != 0)
+    {
+        OutputDebugString((char*)error->GetBufferPointer());
+        error->Release();
+        if (FAILED(result))
+        {
+            OutputDebugString("#### Failed to compile pixel shader! ####\n");
+            //return result;
+        }
+    }
+
+    // Vertex shader create
+    result = device->CreateVertexShader(vertShader->GetBufferPointer(), vertShader->GetBufferSize(), NULL, &vertexShader);
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create vertex shader! ####\n");
+        //return result;
+    }
+
+    // Pixel shader create
+    result = device->CreatePixelShader(pixShader->GetBufferPointer(), pixShader->GetBufferSize(), NULL, &pixelShader);
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create pixel shader! ####\n");
+        //return result;
+    }
+
+    result = device->CreateInputLayout(
+        inputElementDescriptions,
+        sizeof(inputElementDescriptions) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+        vertShader->GetBufferPointer(),
+        vertShader->GetBufferSize(),
+        &inputLayout
+    );
+
+    if (FAILED(result))
+    {
+        OutputDebugString("#### Failed to create input layout! ####\n");
+        //return result;
+    }
+}
+
+void Mesh::setShaders(ID3D11DeviceContext* immediateContext)
+{
+    immediateContext->VSSetShader(vertexShader, 0, 0);
+    immediateContext->PSSetShader(pixelShader, 0, 0);
+    immediateContext->IASetInputLayout(inputLayout);
+}
+
 Mesh::Mesh()
 {
     position = DirectX::XMVectorZero();
@@ -82,6 +158,9 @@ Mesh::~Mesh()
     if (vertexBuffer) vertexBuffer->Release();
     if (texture) texture->Release();
     if (normalMap) normalMap->Release();
+    if (inputLayout) inputLayout->Release();
+    if (vertexShader) vertexShader->Release();
+    if (pixelShader) pixelShader->Release();
 }
 
 static void float3Normalize(XMFLOAT3* value)
@@ -141,6 +220,7 @@ void Mesh::loadFromFile(const char* fileName)
                 std::vector<std::string> vertexData = Utility::split(data[i], '/');
 
                 int vertexIndex = std::atoi(vertexData[0].c_str());
+                indices.push_back(vertexIndex);
                 Vertex vertex = newVertices[vertexIndex - 1];
 
                 int textureCoordsIndex = std::atoi(vertexData[1].c_str());

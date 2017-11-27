@@ -174,60 +174,6 @@ HRESULT Window::initialiseGraphics()
         return result;
     }
 
-    ID3DBlob* vertShader = nullptr;
-    ID3DBlob* pixShader = nullptr;
-    ID3DBlob* error = nullptr;
-
-    UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-    flags |= D3DCOMPILE_DEBUG;
-#endif
-
-    // Vertex shader compile
-    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VShader", "vs_5_0", flags, NULL, &vertShader, &error);
-    if (error != 0)
-    {
-        OutputDebugString((char*)error->GetBufferPointer());
-        error->Release();
-        if (FAILED(result))
-        {
-            OutputDebugString("#### Failed to compile vertex shader! ####\n");
-            return result;
-        }
-    }
-
-    // Pixel shader compile
-    result = D3DCompileFromFile(L"shaders/shaders.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PShader", "ps_5_0", flags, NULL, &pixShader, &error);
-    if (error != 0)
-    {
-        OutputDebugString((char*)error->GetBufferPointer());
-        error->Release();
-        if (FAILED(result))
-        {
-            OutputDebugString("#### Failed to compile pixel shader! ####\n");
-            return result;
-        }
-    }
-
-    // Vertex shader create
-    result = device->CreateVertexShader(vertShader->GetBufferPointer(), vertShader->GetBufferSize(), NULL, &vertexShader);
-    if (FAILED(result))
-    {
-        OutputDebugString("#### Failed to create vertex shader! ####\n");
-        return result;
-    }
-
-    // Pixel shader create
-    result = device->CreatePixelShader(pixShader->GetBufferPointer(), pixShader->GetBufferSize(), NULL, &pixelShader);
-    if (FAILED(result))
-    {
-        OutputDebugString("#### Failed to create pixel shader! ####\n");
-        return result;
-    }
-
-    immediateContext->VSSetShader(vertexShader, 0, 0);
-    immediateContext->PSSetShader(pixelShader, 0, 0);
-
     D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -238,22 +184,6 @@ HRESULT Window::initialiseGraphics()
         { "INST_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         { "TEXID", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
     };
-
-    result = device->CreateInputLayout(
-        inputElementDescriptions,
-        ARRAYSIZE(inputElementDescriptions),
-        vertShader->GetBufferPointer(),
-        vertShader->GetBufferSize(),
-        &inputLayout
-    );
-
-    if (FAILED(result))
-    {
-        OutputDebugString("#### Failed to create input layout! ####\n");
-        return result;
-    }
-
-    immediateContext->IASetInputLayout(inputLayout);
 
     D3D11_SAMPLER_DESC samplerDescription;
     ZeroMemory(&samplerDescription, sizeof(samplerDescription));
@@ -282,9 +212,6 @@ void Window::shutdownD3D()
     if (sampler0) sampler0->Release();
     if (zBuffer) zBuffer->Release();
     if (constantBuffer0) constantBuffer0->Release();
-    if (inputLayout) inputLayout->Release();
-    if (vertexShader) vertexShader->Release();
-    if (pixelShader) pixelShader->Release();
     if (backBufferRTView) backBufferRTView->Release();
     if (swapChain) swapChain->Release();
     if (immediateContext) immediateContext->Release();

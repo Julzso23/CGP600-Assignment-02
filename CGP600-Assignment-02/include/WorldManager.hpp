@@ -4,6 +4,7 @@
 #include "BlockObject.hpp"
 #include "Light.hpp"
 #include "Player.hpp"
+#include "Enemy.hpp"
 #include "BlockInstance.hpp"
 #include <memory>
 #include <vector>
@@ -29,6 +30,7 @@ class WorldManager
         Light light;
 
 		Player player;
+        std::vector<Enemy> enemies;
 
         int getBlockIndex(int x, int y, int z);
         int getBlockIndex(Segment ray);

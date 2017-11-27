@@ -122,6 +122,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\Enemy.cpp" />
+    <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\PerlinNoise.cpp" />
     <ClCompile Include="src\BlockObject.cpp" />
@@ -139,12 +141,14 @@
     <ClInclude Include="include\Block.hpp" />
     <ClInclude Include="include\BlockObject.hpp" />
     <ClInclude Include="include\BlockInstance.hpp" />
+    <ClInclude Include="include\Character.hpp" />
     <ClInclude Include="include\collision\AABB.hpp" />
     <ClInclude Include="include\collision\Hit.hpp" />
     <ClInclude Include="include\collision\Segment.hpp" />
     <ClInclude Include="include\collision\Sweep.hpp" />
     <ClInclude Include="include\ConstantBuffers.hpp" />
     <ClInclude Include="include\Camera.hpp" />
+    <ClInclude Include="include\Enemy.hpp" />
     <ClInclude Include="include\Light.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\PerlinNoise.hpp" />

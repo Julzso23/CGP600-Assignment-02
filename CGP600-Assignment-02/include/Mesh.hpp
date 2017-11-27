@@ -9,6 +9,12 @@ class Mesh
     private:
         std::vector<Vertex> vertices;
         ID3D11Buffer* vertexBuffer = nullptr;
+        std::vector<int> indices;
+        ID3D11Buffer* indexBuffer = nullptr;
+
+        ID3D11VertexShader* vertexShader = nullptr;
+        ID3D11PixelShader* pixelShader = nullptr;
+        ID3D11InputLayout* inputLayout = nullptr;
 
         ID3D11ShaderResourceView* texture = nullptr;
         ID3D11ShaderResourceView* normalMap = nullptr;
@@ -30,6 +36,9 @@ class Mesh
         HRESULT loadTexture(ID3D11Device* device, const wchar_t* fileName, const wchar_t* normalMapFileName);
         ID3D11ShaderResourceView* getTexture() const;
         ID3D11ShaderResourceView* getNormalMap() const;
+
+        void loadShaders(const char* path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions);
+        void setShaders(ID3D11DeviceContext* immediateContext);
 
         void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;
