@@ -160,7 +160,7 @@ void Mesh::setShaders(ID3D11DeviceContext* immediateContext)
     immediateContext->IASetInputLayout(inputLayout);
     immediateContext->VSSetShader(vertexShader, 0, 0);
     immediateContext->PSSetShader(pixelShader, 0, 0);
-    immediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     immediateContext->PSSetSamplers(0, 1, &sampler0);
 }
 

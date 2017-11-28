@@ -30,7 +30,7 @@ class WorldManager
         Light light;
 
 		Player player;
-        std::vector<Enemy> enemies;
+        std::vector<std::unique_ptr<Enemy>> enemies;
 
         int getBlockIndex(int x, int y, int z);
         int getBlockIndex(Segment ray);

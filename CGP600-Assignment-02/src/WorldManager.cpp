@@ -156,6 +156,13 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     };
     blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
 
+    enemies.push_back(std::move(std::make_unique<Enemy>()));
+    for (std::unique_ptr<Enemy>& enemy : enemies)
+    {
+        enemy->initialise(device, immediateContext);
+        enemy->setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+    }
+
     ID3D11ShaderResourceView* texture = nullptr;
 
 	CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-albedo.png", NULL, &texture);
@@ -272,11 +279,21 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
     immediateContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
     immediateContext->DrawInstanced(vertexCount, (UINT)instances.size(), 0, 0);
+
+    for (std::unique_ptr<Enemy>& enemy : enemies)
+    {
+        enemy->draw(immediateContext, constantBuffer0, constantBuffer0Value);
+    }
 }
 
 void WorldManager::update(float deltaTime)
 {
     player.update(deltaTime);
+
+    /*for (std::unique_ptr<Enemy>& enemy : enemies)
+    {
+        enemy->update(deltaTime);
+    }*/
 
     int playerX = (int)floor(XMVectorGetX(player.getPosition()));
     int playerY = (int)floor(XMVectorGetY(player.getPosition()));
@@ -315,6 +332,28 @@ void WorldManager::update(float deltaTime)
                         }
                     }
                 }
+
+                /*for (std::unique_ptr<Enemy>& enemy : enemies)
+                {
+                    hit = blockObject->testIntersection(*enemy);
+                    if (hit.hit)
+                    {
+                        hitDelta += hit.delta;
+
+                        if (XMVectorGetY(hit.delta) != 0.f)
+                        {
+                            XMVECTOR difference = XMVectorAbs(enemy->getPosition() - blockPosition);
+                            if (XMVectorGetX(difference) < XMVectorGetX(enemy->getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(enemy->getSize()) - 0.01f)
+                            {
+                                if (XMVectorGetY(hit.delta) > 0.f)
+                                {
+                                    enemy->setGrounded(true);
+                                }
+                                enemy->setVelocity(0.f);
+                            }
+                        }
+                    }
+                }*/
             }
         }
     }
