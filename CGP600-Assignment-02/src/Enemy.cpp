@@ -54,4 +54,16 @@ void Enemy::update(float deltaTime)
 
 	DirectX::XMVECTOR positionOffset = DirectX::XMVectorSet(0.f, velocity, 0.f, 0.f);
 	move(positionOffset * deltaTime);
+
+	jump();
+
+	grounded = false;
+}
+
+void Enemy::moveTowards(DirectX::XMVECTOR position, float deltaTime)
+{
+	DirectX::XMVECTOR offset = position - this->position;
+	offset = DirectX::XMVectorSetY(offset, 0.f);
+	offset = DirectX::XMVector3Normalize(offset);
+	move(offset * moveSpeed * deltaTime);
 }

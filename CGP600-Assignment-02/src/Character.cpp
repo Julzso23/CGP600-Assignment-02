@@ -2,7 +2,7 @@
 
 Character::Character()
 {
-    setSize(DirectX::XMVectorSet(0.8f, 1.8f, 0.8f, 0.f)); // Collider size
+    setSize(DirectX::XMVectorSet(0.6f, 1.8f, 0.6f, 0.f)); // Collider size
 }
 
 void Character::update(float deltaTime)

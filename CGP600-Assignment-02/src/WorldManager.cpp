@@ -104,8 +104,10 @@ void WorldManager::buildInstanceBuffer()
     device->CreateBuffer(&bufferDescription, &instanceData, &instanceBuffer);
 }
 
-void WorldManager::handleCharacterCollision(Character& character, int checkRange)
+void WorldManager::handleCharacterCollision(Character& character)
 {
+	const int checkRange = 2;
+
 	int characterX = (int)floor(XMVectorGetX(character.getPosition()));
 	int characterY = (int)floor(XMVectorGetY(character.getPosition()));
 	int characterZ = (int)floor(XMVectorGetZ(character.getPosition()));
@@ -205,7 +207,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     };
     blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
 
-    enemies.push_back(std::move(std::make_unique<Enemy>()));
+	for (int i = 0; i < 10; i++)
+	{
+		enemies.push_back(std::move(std::make_unique<Enemy>()));
+	}
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->initialise(device, immediateContext);
@@ -337,18 +342,35 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
 void WorldManager::update(float deltaTime)
 {
-	const int checkRange = 2;
+	player.update(deltaTime);
+
+	handleCharacterCollision(player);
 
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->update(deltaTime);
+		enemy->moveTowards(player.getPosition(), deltaTime);
 
-		handleCharacterCollision(*enemy, checkRange);
+		handleCharacterCollision(*enemy);
+
+		for (std::unique_ptr<Enemy>& otherEnemy : enemies)
+		{
+			Hit hit = enemy->testIntersection(*otherEnemy);
+			if (hit.hit)
+			{
+				otherEnemy->move(hit.delta / 2.f);
+				enemy->move(-hit.delta / 2.f);
+			}
+		}
+
+		Hit hit = enemy->testIntersection(player);
+		if (hit.hit)
+		{
+			player.move(hit.delta / 2.f);
+			enemy->move(-hit.delta / 2.f);
+			player.setVelocity(10.f);
+		}
     }
-
-	player.update(deltaTime);
-
-	handleCharacterCollision(player, checkRange);
 }
 
 void WorldManager::setCameraAspectRatio(UINT width, UINT height)

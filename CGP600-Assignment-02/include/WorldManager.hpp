@@ -36,7 +36,7 @@ class WorldManager
         int getBlockIndex(Segment ray);
         void removeBlock(int index);
         void buildInstanceBuffer();
-		void handleCharacterCollision(Character& character, int checkRange);
+		void handleCharacterCollision(Character& character);
     public:
         WorldManager();
         ~WorldManager();

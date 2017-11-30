@@ -13,4 +13,5 @@ class Enemy : public Character
         void draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0, ConstantBuffer0 constantBuffer0Value);
 		void setPosition(DirectX::XMVECTOR position);
 		void update(float deltaTime);
+		void moveTowards(DirectX::XMVECTOR position, float deltaTime);
 };
