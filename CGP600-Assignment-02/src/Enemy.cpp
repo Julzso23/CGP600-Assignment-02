@@ -1,5 +1,7 @@
 #include "Enemy.hpp"
 
+using namespace DirectX;
+
 void Enemy::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
     mesh.loadFromFile("models/character.obj");
@@ -42,7 +44,7 @@ void Enemy::draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBu
     immediateContext->Draw(vertexCount, 0);
 }
 
-void Enemy::setPosition(DirectX::XMVECTOR position)
+void Enemy::setPosition(XMVECTOR position)
 {
 	Character::setPosition(position);
 	mesh.setPosition(position);
@@ -52,7 +54,7 @@ void Enemy::update(float deltaTime)
 {
 	Character::update(deltaTime);
 
-	DirectX::XMVECTOR positionOffset = DirectX::XMVectorSet(0.f, velocity, 0.f, 0.f);
+	XMVECTOR positionOffset = XMVectorSet(0.f, velocity, 0.f, 0.f);
 	move(positionOffset * deltaTime);
 
 	jump();
@@ -60,10 +62,12 @@ void Enemy::update(float deltaTime)
 	grounded = false;
 }
 
-void Enemy::moveTowards(DirectX::XMVECTOR position, float deltaTime)
+void Enemy::moveTowards(XMVECTOR position, float deltaTime)
 {
-	DirectX::XMVECTOR offset = position - this->position;
-	offset = DirectX::XMVectorSetY(offset, 0.f);
-	offset = DirectX::XMVector3Normalize(offset);
+	XMVECTOR offset = position - this->position;
+	offset = XMVectorSetY(offset, 0.f);
+	offset = XMVector3Normalize(offset);
 	move(offset * moveSpeed * deltaTime);
+
+    mesh.setRotation(XMVectorSetY(mesh.getRotation(), 90.f - XMConvertToDegrees(atan2f(XMVectorGetZ(offset), XMVectorGetX(offset)))));
 }
