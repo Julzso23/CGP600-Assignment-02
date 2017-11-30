@@ -47,3 +47,11 @@ void Enemy::setPosition(DirectX::XMVECTOR position)
 	Character::setPosition(position);
 	mesh.setPosition(position);
 }
+
+void Enemy::update(float deltaTime)
+{
+	Character::update(deltaTime);
+
+	DirectX::XMVECTOR positionOffset = DirectX::XMVectorSet(0.f, velocity, 0.f, 0.f);
+	move(positionOffset * deltaTime);
+}

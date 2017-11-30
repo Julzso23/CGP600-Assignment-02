@@ -11,6 +11,8 @@ using namespace DirectX;
 
 HRESULT Mesh::initialiseVertexBuffer(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     D3D11_BUFFER_DESC vertexBufferDescription;
     ZeroMemory(&vertexBufferDescription, sizeof(vertexBufferDescription));
     vertexBufferDescription.Usage = D3D11_USAGE_DYNAMIC;
@@ -36,12 +38,16 @@ HRESULT Mesh::initialiseVertexBuffer(ID3D11Device* device, ID3D11DeviceContext* 
 
 ID3D11Buffer* Mesh::getVertexBuffer(UINT* vertexCount) const
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     *vertexCount = (UINT)vertices.size();
     return vertexBuffer;
 }
 
 HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName, const wchar_t* normalMapFileName)
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     HRESULT result = CreateWICTextureFromFile(device, fileName, NULL, &texture);
 
     if (FAILED(result))
@@ -63,16 +69,20 @@ HRESULT Mesh::loadTexture(ID3D11Device* device, const wchar_t* fileName, const w
 
 ID3D11ShaderResourceView* Mesh::getTexture() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return texture;
 }
 
 ID3D11ShaderResourceView* Mesh::getNormalMap() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return normalMap;
 }
 
 void Mesh::loadShaders(LPWSTR path, ID3D11Device* device, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, UINT descriptionCount)
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     ID3DBlob* vertShader = nullptr;
     ID3DBlob* pixShader = nullptr;
     ID3DBlob* error = nullptr;
@@ -189,6 +199,8 @@ static void float3Normalize(XMFLOAT3* value)
 
 void Mesh::loadFromFile(const char* fileName)
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     std::ifstream file(fileName);
 
     if (!file)
@@ -303,41 +315,50 @@ void Mesh::loadFromFile(const char* fileName)
 
 std::vector<Vertex>* Mesh::getVertices()
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return &vertices;
 }
 
 void Mesh::setPosition(XMVECTOR position)
 {
+	std::lock_guard<std::mutex> lock(mutex);
     this->position = position;
 }
 
 XMVECTOR Mesh::getPosition() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return position;
 }
 
 void Mesh::setRotation(XMVECTOR rotation)
 {
+	std::lock_guard<std::mutex> lock(mutex);
     this->rotation = rotation;
 }
 
 XMVECTOR Mesh::getRotation() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return rotation;
 }
 
 void Mesh::setScale(XMVECTOR scale)
 {
+	std::lock_guard<std::mutex> lock(mutex);
     this->scale = scale;
 }
 
 XMVECTOR Mesh::getScale() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
     return scale;
 }
 
 XMMATRIX Mesh::getTransform() const
 {
+	std::lock_guard<std::mutex> lock(mutex);
+
     XMMATRIX transform = XMMatrixIdentity();
     transform *= XMMatrixScalingFromVector(scale);
     transform *= XMMatrixRotationZ(XMConvertToRadians(XMVectorGetZ(rotation)));

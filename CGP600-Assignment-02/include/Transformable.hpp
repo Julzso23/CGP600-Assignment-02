@@ -17,7 +17,7 @@ class Transformable
 
         Transformable();
 
-        void setPosition(DirectX::XMVECTOR position);
+        virtual void setPosition(DirectX::XMVECTOR position);
         DirectX::XMVECTOR getPosition() const;
 
         void setRotation(DirectX::XMVECTOR rotation);

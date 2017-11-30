@@ -104,6 +104,55 @@ void WorldManager::buildInstanceBuffer()
     device->CreateBuffer(&bufferDescription, &instanceData, &instanceBuffer);
 }
 
+void WorldManager::handleCharacterCollision(Character& character, int checkRange)
+{
+	int characterX = (int)floor(XMVectorGetX(character.getPosition()));
+	int characterY = (int)floor(XMVectorGetY(character.getPosition()));
+	int characterZ = (int)floor(XMVectorGetZ(character.getPosition()));
+
+	XMVECTOR hitDelta = XMVectorZero();
+
+	for (int x = Utility::max(characterX - checkRange, 0); x < Utility::min(characterX + checkRange, width); x++)
+	{
+		for (int y = Utility::max(characterY - checkRange, 0); y < Utility::min(characterY + checkRange, height); y++)
+		{
+			for (int z = Utility::max(characterZ - checkRange, 0); z < Utility::min(characterZ + checkRange, depth); z++)
+			{
+				if (getBlock(x, y, z) == nullptr) continue;
+
+				XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
+				blockObject->setPosition(blockPosition);
+				Hit hit = blockObject->testIntersection(character);
+				if (hit.hit)
+				{
+					hitDelta += hit.delta;
+
+					if (XMVectorGetY(hit.delta) != 0.f)
+					{
+						XMVECTOR difference = XMVectorAbs(character.getPosition() - blockPosition);
+						if (XMVectorGetX(difference) < XMVectorGetX(character.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(character.getSize()) - 0.01f)
+						{
+							if (XMVectorGetY(hit.delta) > 0.f)
+							{
+								character.setGrounded(true);
+							}
+							character.setVelocity(0.f);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	character.move(hitDelta);
+
+	if (XMVectorGetY(character.getPosition()) < -10.f)
+	{
+		character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+		character.setVelocity(0.f);
+	}
+}
+
 WorldManager::WorldManager() :
     blocks(width * height * depth)
 {
@@ -288,83 +337,18 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
 void WorldManager::update(float deltaTime)
 {
-    player.update(deltaTime);
+	const int checkRange = 2;
 
-    /*for (std::unique_ptr<Enemy>& enemy : enemies)
+    for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->update(deltaTime);
-    }*/
 
-    int playerX = (int)floor(XMVectorGetX(player.getPosition()));
-    int playerY = (int)floor(XMVectorGetY(player.getPosition()));
-    int playerZ = (int)floor(XMVectorGetZ(player.getPosition()));
-
-    const int checkRange = 2;
-
-    XMVECTOR hitDelta = XMVectorZero();
-
-    for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
-    {
-        for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
-        {
-            for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
-            {
-				std::unique_ptr<Block>& block = getBlock(x, y, z);
-                if (!block) continue;
-
-                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
-                blockObject->setPosition(blockPosition);
-                Hit hit = blockObject->testIntersection(player);
-                if (hit.hit)
-                {
-                    hitDelta += hit.delta;
-
-                    if (XMVectorGetY(hit.delta) != 0.f)
-                    {
-                        XMVECTOR difference = XMVectorAbs(player.getPosition() - blockPosition);
-                        if (XMVectorGetX(difference) < XMVectorGetX(player.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(player.getSize()) - 0.01f)
-                        {
-							if (XMVectorGetY(hit.delta) > 0.f)
-							{
-								player.setGrounded(true);
-							}
-							player.setVelocity(0.f);
-                        }
-                    }
-                }
-
-                /*for (std::unique_ptr<Enemy>& enemy : enemies)
-                {
-                    hit = blockObject->testIntersection(*enemy);
-                    if (hit.hit)
-                    {
-                        hitDelta += hit.delta;
-
-                        if (XMVectorGetY(hit.delta) != 0.f)
-                        {
-                            XMVECTOR difference = XMVectorAbs(enemy->getPosition() - blockPosition);
-                            if (XMVectorGetX(difference) < XMVectorGetX(enemy->getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(enemy->getSize()) - 0.01f)
-                            {
-                                if (XMVectorGetY(hit.delta) > 0.f)
-                                {
-                                    enemy->setGrounded(true);
-                                }
-                                enemy->setVelocity(0.f);
-                            }
-                        }
-                    }
-                }*/
-            }
-        }
+		handleCharacterCollision(*enemy, checkRange);
     }
 
-    player.setPosition(player.getPosition() + hitDelta);
+	player.update(deltaTime);
 
-    if (XMVectorGetY(player.getPosition()) < -10.f)
-    {
-        player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
-        player.setVelocity(0.f);
-    }
+	handleCharacterCollision(player, checkRange);
 }
 
 void WorldManager::setCameraAspectRatio(UINT width, UINT height)

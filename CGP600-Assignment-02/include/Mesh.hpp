@@ -3,6 +3,7 @@
 #include "Vertex.hpp"
 #include <vector>
 #include <d3d11.h>
+#include <mutex>
 
 class Mesh
 {
@@ -23,6 +24,8 @@ class Mesh
         DirectX::XMVECTOR position;
         DirectX::XMVECTOR rotation;
         DirectX::XMVECTOR scale;
+
+		mutable std::mutex mutex;
     public:
         Mesh();
         ~Mesh();
