@@ -21,8 +21,8 @@ void Enemy::draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBu
 {
     mesh.setShaders(immediateContext);
     
-    /*constantBuffer0Value.worldViewProjection = DirectX::XMMatrixTranslationFromVector(DirectX::XMVectorSet(0.f, 0.f, 0.f, 0.f));
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);*/
+    constantBuffer0Value.worldViewProjection = mesh.getTransform() * constantBuffer0Value.worldViewProjection;
+    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
     immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
 
@@ -34,10 +34,16 @@ void Enemy::draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBu
     UINT vertexCount;
     ID3D11Buffer* vertexBuffer = mesh.getVertexBuffer(&vertexCount);
 
-    UINT strides = 0;
+    UINT strides = sizeof(Vertex);
     UINT offsets = 0;
 
     immediateContext->PSSetShaderResources(0, 2, textures);
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &strides, &offsets);
     immediateContext->Draw(vertexCount, 0);
+}
+
+void Enemy::setPosition(DirectX::XMVECTOR position)
+{
+	Character::setPosition(position);
+	mesh.setPosition(position);
 }
