@@ -2,7 +2,7 @@ cbuffer CBuffer0
 {
     matrix worldViewProjection;
     float4 lightDirection;
-    float4 lightColour;
+    float4 directionalLightColour;
     float4 ambientLightColour;
 };
 
@@ -48,6 +48,6 @@ float4 PShader(VOut input) : SV_TARGET
     float diffuseAmount = dot(lightDirection.xyz, normal);
     diffuseAmount = saturate(diffuseAmount);
 
-    input.colour += diffuseAmount * lightColour;
+    input.colour += diffuseAmount * directionalLightColour;
     return input.colour * textures[0].Sample(sampler0, input.texcoord);
 }

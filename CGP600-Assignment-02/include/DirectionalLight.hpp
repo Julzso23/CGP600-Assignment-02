@@ -2,7 +2,7 @@
 
 #include "Transformable.hpp"
 
-class Light
+class DirectionalLight
 {
     private:
         static DirectX::XMVECTOR ambientColour;

@@ -8,6 +8,6 @@ struct ConstantBuffer0
 {
     DirectX::XMMATRIX worldViewProjection;
     DirectX::XMVECTOR lightDirection;
-    DirectX::XMVECTOR lightColour;
+    DirectX::XMVECTOR directionalLightColour;
     DirectX::XMVECTOR ambientLightColour;
 };

@@ -2,7 +2,7 @@
 
 #include "Block.hpp"
 #include "BlockObject.hpp"
-#include "Light.hpp"
+#include "DirectionalLight.hpp"
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "BlockInstance.hpp"
@@ -27,7 +27,7 @@ class WorldManager
 		std::vector<ID3D11ShaderResourceView*> textures;
         mutable std::mutex mutex;
 
-        Light light;
+        DirectionalLight directionalLight;
 
 		Player player;
         std::vector<std::unique_ptr<Enemy>> enemies;

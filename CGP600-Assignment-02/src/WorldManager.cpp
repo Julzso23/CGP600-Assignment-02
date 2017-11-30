@@ -159,9 +159,9 @@ WorldManager::WorldManager() :
     blocks(width * height * depth)
 {
     // Setup the directional light
-    light.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
-    light.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
-    light.setAmbientColour(DirectX::XMVectorSet(0.3f, 0.3f, 0.3f, 1.f));
+    directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
+    directionalLight.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
+    directionalLight.setAmbientColour(DirectX::XMVectorSet(0.3f, 0.3f, 0.3f, 1.f));
 }
 
 WorldManager::~WorldManager()
@@ -309,9 +309,9 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
     ConstantBuffer0 constantBuffer0Value = {
         player.getCamera()->getViewMatrix(),
-        DirectX::XMVectorNegate(light.getDirection()),
-        light.getColour(),
-        light.getAmbientColour()
+        DirectX::XMVectorNegate(directionalLight.getDirection()),
+        directionalLight.getColour(),
+        directionalLight.getAmbientColour()
     };
     immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);

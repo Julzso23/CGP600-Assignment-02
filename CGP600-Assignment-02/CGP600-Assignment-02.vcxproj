@@ -122,13 +122,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\SpotLight.cpp" />
     <ClCompile Include="src\Enemy.cpp" />
     <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\PerlinNoise.cpp" />
     <ClCompile Include="src\BlockObject.cpp" />
     <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\DirectionalLight.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Player.cpp" />
@@ -149,10 +150,11 @@
     <ClInclude Include="include\ConstantBuffers.hpp" />
     <ClInclude Include="include\Camera.hpp" />
     <ClInclude Include="include\Enemy.hpp" />
-    <ClInclude Include="include\Light.hpp" />
+    <ClInclude Include="include\DirectionalLight.hpp" />
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\PerlinNoise.hpp" />
     <ClInclude Include="include\Player.hpp" />
+    <ClInclude Include="include\SpotLight.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
     <ClInclude Include="include\Utility.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
