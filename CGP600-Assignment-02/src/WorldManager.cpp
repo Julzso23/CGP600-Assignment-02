@@ -361,6 +361,7 @@ void WorldManager::update(float deltaTime)
             Hit hit = enemy->testIntersection(*otherEnemy);
             if (hit.hit)
             {
+                hit.delta = XMVectorSetY(hit.delta, 0.f);
                 otherEnemy->move(hit.delta / 2.f);
                 enemy->move(-hit.delta / 2.f);
             }
@@ -369,9 +370,10 @@ void WorldManager::update(float deltaTime)
         Hit hit = enemy->testIntersection(player);
         if (hit.hit)
         {
+            hit.delta = XMVectorSetY(hit.delta, 0.f);
             player.move(hit.delta / 2.f);
             enemy->move(-hit.delta / 2.f);
-            player.setVelocity(10.f);
+            player.setVelocity(5.f);
         }
     }
 }
