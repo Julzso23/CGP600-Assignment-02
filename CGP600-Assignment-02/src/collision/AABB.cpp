@@ -34,7 +34,7 @@ Hit AABB::testIntersection(XMVECTOR point, XMVECTOR padding) // Padding pads out
     Hit result;
     XMVECTOR difference = point - getCentre();
     XMVECTOR half = getHalf() + padding;
-    XMVECTOR collisionPoint = half - XMVectorSet(abs(XMVectorGetX(difference)), abs(XMVectorGetY(difference)), abs(XMVectorGetZ(difference)), 0.f);
+    XMVECTOR collisionPoint = half - XMVectorAbs(difference);
 
     result.object = this;
 
@@ -52,12 +52,7 @@ Hit AABB::testIntersection(XMVECTOR point, XMVECTOR padding) // Padding pads out
 
         result.normal = XMVectorSet(signX, 0.f, 0.f, 0.f);
 
-        result.position = XMVectorSet(
-            XMVectorGetX(getCentre()) + (XMVectorGetX(half) * signX),
-            XMVectorGetY(point),
-            XMVectorGetZ(point),
-            0.f
-        );
+        result.position = XMVectorSetX(point, XMVectorGetX(getCentre()) + (XMVectorGetX(half) * signX));
 
         result.hit = true;
 
@@ -72,13 +67,7 @@ Hit AABB::testIntersection(XMVECTOR point, XMVECTOR padding) // Padding pads out
 
         result.normal = XMVectorSet(0.f, signY, 0.f, 0.f);
 
-        result.position = XMVectorSet(
-            XMVectorGetX(point),
-            XMVectorGetY(getCentre()) + (XMVectorGetY(half) * signY),
-            XMVectorGetZ(point),
-            0.f
-        );
-
+        result.position = XMVectorSetY(point, XMVectorGetY(getCentre()) + (XMVectorGetY(half) * signY));
 
         result.hit = true;
 
@@ -91,12 +80,7 @@ Hit AABB::testIntersection(XMVECTOR point, XMVECTOR padding) // Padding pads out
 
     result.normal = XMVectorSet(0.f, 0.f, signZ, 0.f);
 
-    result.position = XMVectorSet(
-        XMVectorGetX(point),
-        XMVectorGetY(point),
-        XMVectorGetZ(getCentre()) + (XMVectorGetZ(half) * signZ),
-        0.f
-    );
+    result.position = XMVectorSetZ(point, XMVectorGetZ(getCentre()) + (XMVectorGetZ(half) * signZ));
 
     result.hit = true;
 
@@ -113,19 +97,21 @@ Hit AABB::testIntersection(Segment segment, XMVECTOR padding) // Padding pads ou
 
     XMVECTOR nearTimes, farTimes;
 
-    nearTimes = XMVectorSet(
+    nearTimes = (getCentre() - sign * (getHalf() + padding) - segment.position) * scale;
+    /*XMVectorSet(
         (XMVectorGetX(getCentre()) - XMVectorGetX(sign) * (XMVectorGetX(getHalf()) + XMVectorGetX(padding)) - XMVectorGetX(segment.position)) * XMVectorGetX(scale),
         (XMVectorGetY(getCentre()) - XMVectorGetY(sign) * (XMVectorGetY(getHalf()) + XMVectorGetY(padding)) - XMVectorGetY(segment.position)) * XMVectorGetY(scale),
         (XMVectorGetZ(getCentre()) - XMVectorGetZ(sign) * (XMVectorGetZ(getHalf()) + XMVectorGetZ(padding)) - XMVectorGetZ(segment.position)) * XMVectorGetZ(scale),
         0.f
-    );
+    );*/
 
-    farTimes = XMVectorSet(
+    farTimes = (getCentre() + sign * (getHalf() + padding) - segment.position) * scale;
+    /*XMVectorSet(
         (XMVectorGetX(getCentre()) + XMVectorGetX(sign) * (XMVectorGetX(getHalf()) + XMVectorGetX(padding)) - XMVectorGetX(segment.position)) * XMVectorGetX(scale),
         (XMVectorGetY(getCentre()) + XMVectorGetY(sign) * (XMVectorGetY(getHalf()) + XMVectorGetY(padding)) - XMVectorGetY(segment.position)) * XMVectorGetY(scale),
         (XMVectorGetZ(getCentre()) + XMVectorGetZ(sign) * (XMVectorGetZ(getHalf()) + XMVectorGetZ(padding)) - XMVectorGetZ(segment.position)) * XMVectorGetZ(scale),
         0.f
-    );
+    );*/
 
     result.object = this;
 

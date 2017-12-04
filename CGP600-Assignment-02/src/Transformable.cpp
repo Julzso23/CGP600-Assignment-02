@@ -28,7 +28,7 @@ Transformable::Transformable()
     rotation = XMVectorZero();
 }
 
-void Transformable::setPosition(DirectX::XMVECTOR position)
+void Transformable::setPosition(const DirectX::XMVECTOR& position)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -42,7 +42,7 @@ DirectX::XMVECTOR Transformable::getPosition() const
     return position;
 }
 
-void Transformable::setRotation(DirectX::XMVECTOR rotation)
+void Transformable::setRotation(const DirectX::XMVECTOR& rotation)
 {
     std::lock_guard<std::mutex> lock(mutex);
 

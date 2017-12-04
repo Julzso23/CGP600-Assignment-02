@@ -30,7 +30,7 @@ Camera* Player::getCamera()
 }
 
 // Update camera position when moving the player
-void Player::setPosition(XMVECTOR position)
+void Player::setPosition(const XMVECTOR& position)
 {
     Transformable::setPosition(position);
     camera.setPosition(position + cameraOffset);
@@ -39,9 +39,6 @@ void Player::setPosition(XMVECTOR position)
 void Player::update(float deltaTime)
 {
     Character::update(deltaTime);
-
-    // Stop player input when the window is not focused
-    if (GetForegroundWindow() != *window) return;
 
     Keyboard::State keyState = keyboard->GetState();
 

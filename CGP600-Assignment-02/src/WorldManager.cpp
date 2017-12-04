@@ -107,9 +107,10 @@ void WorldManager::handleCharacterCollision(Character& character)
 {
     const int checkRange = 2;
 
-    int characterX = (int)floor(XMVectorGetX(character.getPosition()));
-    int characterY = (int)floor(XMVectorGetY(character.getPosition()));
-    int characterZ = (int)floor(XMVectorGetZ(character.getPosition()));
+    XMVECTOR characterPosition = character.getPosition();
+    int characterX = (int)floor(XMVectorGetX(characterPosition));
+    int characterY = (int)floor(XMVectorGetY(characterPosition));
+    int characterZ = (int)floor(XMVectorGetZ(characterPosition));
 
     XMVECTOR hitDelta = XMVectorZero();
 
@@ -249,7 +250,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         }
     }
 
-    /*std::vector<int> toRemove;
+    std::vector<int> toRemove;
 
     for (int x = 1; x < width - 1; x++)
     {
@@ -265,7 +266,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
                 }
             }
         }
-    }*/
+    }
 
     for (int x = 0; x < width; x++)
     {
@@ -281,10 +282,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         }
     }
 
-    /*for (int block : toRemove)
+    for (int block : toRemove)
     {
         removeBlock(block);
-    }*/
+    }
 
     buildInstanceBuffer();
 }

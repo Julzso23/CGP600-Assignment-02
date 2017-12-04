@@ -44,7 +44,7 @@ void Enemy::draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBu
     immediateContext->Draw(vertexCount, 0);
 }
 
-void Enemy::setPosition(XMVECTOR position)
+void Enemy::setPosition(const XMVECTOR& position)
 {
 	Character::setPosition(position);
 	mesh.setPosition(position);

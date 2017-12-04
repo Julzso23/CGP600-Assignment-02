@@ -30,7 +30,7 @@ class Player : public Character
         void initialise(HWND* windowHandle);
 
         Camera* getCamera();
-        void setPosition(XMVECTOR position);
+        void setPosition(const DirectX::XMVECTOR& position);
         void update(float deltaTime);
 		void setCameraAspectRatio(UINT width, UINT height);
 

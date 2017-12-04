@@ -18,5 +18,5 @@ class Character : public AABB
         void setGrounded(bool value);
         void setVelocity(float value);
         void jump();
-        void move(DirectX::XMVECTOR offset);
+        void move(const DirectX::XMVECTOR& offset);
 };
