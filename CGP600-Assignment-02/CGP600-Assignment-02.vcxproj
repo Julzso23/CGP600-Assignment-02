@@ -122,7 +122,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\SpotLight.cpp" />
     <ClCompile Include="src\Enemy.cpp" />
     <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\collision\AABB.cpp" />
@@ -154,7 +153,6 @@
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\PerlinNoise.hpp" />
     <ClInclude Include="include\Player.hpp" />
-    <ClInclude Include="include\SpotLight.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
     <ClInclude Include="include\Utility.hpp" />
     <ClInclude Include="include\Vertex.hpp" />

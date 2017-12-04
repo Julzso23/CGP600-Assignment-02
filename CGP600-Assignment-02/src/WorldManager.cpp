@@ -1,6 +1,5 @@
 #include "WorldManager.hpp"
 #include "ConstantBuffers.hpp"
-#include "PerlinNoise.hpp"
 #include "Utility.hpp"
 #include <random>
 #include <WICTextureLoader.h>
@@ -13,10 +12,10 @@ int WorldManager::getBlockIndex(int x, int y, int z)
 // Get the index of the first block intersecting a ray
 int WorldManager::getBlockIndex(Segment ray)
 {
-	XMVECTOR playerPosition = player.getPosition();
-	int playerX = (int)floor(XMVectorGetX(playerPosition));
-	int playerY = (int)floor(XMVectorGetY(playerPosition));
-	int playerZ = (int)floor(XMVectorGetZ(playerPosition));
+    XMVECTOR playerPosition = player.getPosition();
+    int playerX = (int)floor(XMVectorGetX(playerPosition));
+    int playerY = (int)floor(XMVectorGetY(playerPosition));
+    int playerZ = (int)floor(XMVectorGetZ(playerPosition));
 
     const int checkRange = 4;
 
@@ -31,7 +30,7 @@ int WorldManager::getBlockIndex(Segment ray)
             for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
             {
                 // Make sure there's a block here
-				std::unique_ptr<Block>& block = getBlock(x, y, z);
+                std::unique_ptr<Block>& block = getBlock(x, y, z);
                 if (!block) continue;
 
                 // Re-use a single block object moved to the current position to save memory
@@ -106,57 +105,68 @@ void WorldManager::buildInstanceBuffer()
 
 void WorldManager::handleCharacterCollision(Character& character)
 {
-	const int checkRange = 2;
+    const int checkRange = 2;
 
-	int characterX = (int)floor(XMVectorGetX(character.getPosition()));
-	int characterY = (int)floor(XMVectorGetY(character.getPosition()));
-	int characterZ = (int)floor(XMVectorGetZ(character.getPosition()));
+    int characterX = (int)floor(XMVectorGetX(character.getPosition()));
+    int characterY = (int)floor(XMVectorGetY(character.getPosition()));
+    int characterZ = (int)floor(XMVectorGetZ(character.getPosition()));
 
-	XMVECTOR hitDelta = XMVectorZero();
+    XMVECTOR hitDelta = XMVectorZero();
 
-	for (int x = Utility::max(characterX - checkRange, 0); x < Utility::min(characterX + checkRange, width); x++)
-	{
-		for (int y = Utility::max(characterY - checkRange, 0); y < Utility::min(characterY + checkRange, height); y++)
-		{
-			for (int z = Utility::max(characterZ - checkRange, 0); z < Utility::min(characterZ + checkRange, depth); z++)
-			{
-				if (getBlock(x, y, z) == nullptr) continue;
+    for (int x = Utility::max(characterX - checkRange, 0); x < Utility::min(characterX + checkRange, width); x++)
+    {
+        for (int y = Utility::max(characterY - checkRange, 0); y < Utility::min(characterY + checkRange, height); y++)
+        {
+            for (int z = Utility::max(characterZ - checkRange, 0); z < Utility::min(characterZ + checkRange, depth); z++)
+            {
+                if (getBlock(x, y, z) == nullptr) continue;
 
-				XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
-				blockObject->setPosition(blockPosition);
-				Hit hit = blockObject->testIntersection(character);
-				if (hit.hit)
-				{
-					hitDelta += hit.delta;
+                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
+                blockObject->setPosition(blockPosition);
+                Hit hit = blockObject->testIntersection(character);
+                if (hit.hit)
+                {
+                    hitDelta += hit.delta;
 
-					if (XMVectorGetY(hit.delta) != 0.f)
-					{
-						XMVECTOR difference = XMVectorAbs(character.getPosition() - blockPosition);
-						if (XMVectorGetX(difference) < XMVectorGetX(character.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(character.getSize()) - 0.01f)
-						{
-							if (XMVectorGetY(hit.delta) > 0.f)
-							{
-								character.setGrounded(true);
-							}
-							character.setVelocity(0.f);
-						}
-					}
-				}
-			}
-		}
-	}
+                    if (XMVectorGetY(hit.delta) != 0.f)
+                    {
+                        XMVECTOR difference = XMVectorAbs(character.getPosition() - blockPosition);
+                        if (XMVectorGetX(difference) < XMVectorGetX(character.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(character.getSize()) - 0.01f)
+                        {
+                            if (XMVectorGetY(hit.delta) > 0.f)
+                            {
+                                character.setGrounded(true);
+                            }
+                            character.setVelocity(0.f);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	character.move(hitDelta);
+    character.move(hitDelta);
 
-	if (XMVectorGetY(character.getPosition()) < -10.f)
-	{
-		character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
-		character.setVelocity(0.f);
-	}
+    if (XMVectorGetY(character.getPosition()) < -10.f)
+    {
+        character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+        character.setVelocity(0.f);
+    }
+}
+
+void WorldManager::generateBlock(int x, int y, int z)
+{
+    const float scaleFactor = 16.f;
+
+    if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
+    {
+        addBlock(x, y, z, { 0 });
+    }
 }
 
 WorldManager::WorldManager() :
-    blocks(width * height * depth)
+    blocks(width * height * depth),
+    noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()))
 {
     // Setup the directional light
     directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
@@ -194,7 +204,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
 
-	blockObject = std::make_unique<BlockObject>(device, immediateContext);
+    blockObject = std::make_unique<BlockObject>(device, immediateContext);
     D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -207,10 +217,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     };
     blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
 
-	for (int i = 0; i < 10; i++)
-	{
-		enemies.push_back(std::move(std::make_unique<Enemy>()));
-	}
+    for (int i = 0; i < 10; i++)
+    {
+        enemies.push_back(std::move(std::make_unique<Enemy>()));
+    }
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->initialise(device, immediateContext);
@@ -219,7 +229,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
 
     ID3D11ShaderResourceView* texture = nullptr;
 
-	CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-albedo.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-albedo.png", NULL, &texture);
     textures.push_back(texture);
     CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-normal.png", NULL, &texture);
     textures.push_back(texture);
@@ -228,25 +238,18 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     CreateWICTextureFromFile(device, immediateContext, L"textures/grass1-normal.png", NULL, &texture);
     textures.push_back(texture);
 
-    PerlinNoise noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
-
-    const float scaleFactor = 16.f;
-
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
             for (int z = 0; z < depth; z++)
             {
-                if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
-                {
-                    addBlock(x, y, z, { 0 });
-                }
+                generateBlock(x, y, z);
             }
         }
     }
 
-    std::vector<int> toRemove;
+    /*std::vector<int> toRemove;
 
     for (int x = 1; x < width - 1; x++)
     {
@@ -262,7 +265,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
                 }
             }
         }
-    }
+    }*/
 
     for (int x = 0; x < width; x++)
     {
@@ -278,10 +281,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         }
     }
 
-    for (int block : toRemove)
+    /*for (int block : toRemove)
     {
         removeBlock(block);
-    }
+    }*/
 
     buildInstanceBuffer();
 }
@@ -324,7 +327,7 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
     };
     UINT offsets[2] = { 0, 0 };
 
-	UINT vertexCount;
+    UINT vertexCount;
 
     ID3D11Buffer* buffers[2] = {
         blockObject->getMesh()->getVertexBuffer(&vertexCount),
@@ -342,34 +345,34 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
 void WorldManager::update(float deltaTime)
 {
-	player.update(deltaTime);
+    player.update(deltaTime);
 
-	handleCharacterCollision(player);
+    handleCharacterCollision(player);
 
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->update(deltaTime);
-		enemy->moveTowards(player.getPosition(), deltaTime);
+        enemy->moveTowards(player.getPosition(), deltaTime);
 
-		handleCharacterCollision(*enemy);
+        handleCharacterCollision(*enemy);
 
-		for (std::unique_ptr<Enemy>& otherEnemy : enemies)
-		{
-			Hit hit = enemy->testIntersection(*otherEnemy);
-			if (hit.hit)
-			{
-				otherEnemy->move(hit.delta / 2.f);
-				enemy->move(-hit.delta / 2.f);
-			}
-		}
+        for (std::unique_ptr<Enemy>& otherEnemy : enemies)
+        {
+            Hit hit = enemy->testIntersection(*otherEnemy);
+            if (hit.hit)
+            {
+                otherEnemy->move(hit.delta / 2.f);
+                enemy->move(-hit.delta / 2.f);
+            }
+        }
 
-		Hit hit = enemy->testIntersection(player);
-		if (hit.hit)
-		{
-			player.move(hit.delta / 2.f);
-			enemy->move(-hit.delta / 2.f);
-			player.setVelocity(10.f);
-		}
+        Hit hit = enemy->testIntersection(player);
+        if (hit.hit)
+        {
+            player.move(hit.delta / 2.f);
+            enemy->move(-hit.delta / 2.f);
+            player.setVelocity(10.f);
+        }
     }
 }
 
