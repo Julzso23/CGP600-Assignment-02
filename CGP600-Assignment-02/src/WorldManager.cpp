@@ -176,6 +176,7 @@ WorldManager::WorldManager() :
 
     pointLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));
     pointLight.setPosition(XMVectorZero());
+    pointLight.setFalloff(30.f);
 }
 
 WorldManager::~WorldManager()
@@ -322,7 +323,8 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, std::vecto
         DirectX::XMVectorNegate(directionalLight.getDirection()),
         directionalLight.getColour(),
         pointLight.getPosition(),
-        pointLight.getColour()
+        pointLight.getColour(),
+        pointLight.getFalloff()
     };
     immediateContext->UpdateSubresource(constantBuffers[0], 0, 0, &vertexConstantBufferValue, 0, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &constantBuffers[0]);

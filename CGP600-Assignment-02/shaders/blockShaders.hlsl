@@ -10,6 +10,8 @@ cbuffer PixelConstantBuffer
     float4 directionalLightColour;
     float4 pointLightPosition;
     float4 pointLightColour;
+    float pointLightFalloff;
+    float3 padding;
 };
 
 struct VIn
@@ -80,11 +82,10 @@ float4 PShader(VOut input) : SV_TARGET
 
     float pointDiffuse = 0.f;
     float4 pointLightDirection = pointLightPosition - input.worldPosition;
-    if (length(pointLightDirection) < 20.f)
-    {
-        pointDiffuse = dot(normalize(pointLightDirection.xyz), normal);
-    }
+    pointDiffuse = dot(normalize(pointLightDirection.xyz), normal);
     pointDiffuse = saturate(pointDiffuse);
+    pointDiffuse *= 1.f - saturate(length(pointLightDirection) / pointLightFalloff);
+    pointDiffuse = pow(pointDiffuse, 2.f);
 
     float directionalDiffuse = 0.f;
     directionalDiffuse += dot(normalize(lightDirection.xyz), normal);

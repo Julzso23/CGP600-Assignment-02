@@ -16,4 +16,6 @@ struct PixelConstantBuffer
     DirectX::XMFLOAT4 directionalLightColour;
     DirectX::XMVECTOR pointLightPosition;
     DirectX::XMFLOAT4 pointLightColour;
+    float pointLightFalloff;
+    DirectX::XMFLOAT3 padding;
 };
