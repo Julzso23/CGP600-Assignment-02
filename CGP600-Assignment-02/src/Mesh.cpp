@@ -192,9 +192,9 @@ Mesh::~Mesh()
     if (pixelShader) pixelShader->Release();
 }
 
-static void float3Normalize(XMFLOAT3* value)
+static void float4Normalize(XMFLOAT4* value)
 {
-    XMStoreFloat3(value, XMVector3Normalize(XMLoadFloat3(value)));
+    XMStoreFloat4(value, XMVector4Normalize(XMLoadFloat4(value)));
 }
 
 void Mesh::loadFromFile(const char* fileName)
@@ -210,7 +210,7 @@ void Mesh::loadFromFile(const char* fileName)
 
     std::vector<Vertex> newVertices;
     std::vector<XMFLOAT2> textureCoords;
-	std::vector<XMFLOAT3> normals;
+	std::vector<XMFLOAT4> normals;
 
     std::string line;
     while (std::getline(file, line))
@@ -237,7 +237,7 @@ void Mesh::loadFromFile(const char* fileName)
 
 		if (data[0] == "vn")
 		{
-			normals.push_back(XMFLOAT3((float)std::atof(data[1].c_str()), (float)std::atof(data[2].c_str()), (float)std::atof(data[3].c_str())));
+			normals.push_back(XMFLOAT4((float)std::atof(data[1].c_str()), (float)std::atof(data[2].c_str()), (float)std::atof(data[3].c_str()), 0.f));
 
 			continue;
 		}
@@ -283,20 +283,22 @@ void Mesh::loadFromFile(const char* fileName)
             };
 
             float denominator = 1.f / ((uVector.x * vVector.y) - (uVector.y * vVector.x));
-            XMFLOAT3 tangent = {
+            XMFLOAT4 tangent = {
                 ((vVector.y * vector0.x) - (vVector.x * vector1.x)) * denominator,
                 ((vVector.y * vector0.y) - (vVector.x * vector1.y)) * denominator,
-                ((vVector.y * vector0.z) - (vVector.x * vector1.z)) * denominator
+                ((vVector.y * vector0.z) - (vVector.x * vector1.z)) * denominator,
+                0.f
             };
 
-            XMFLOAT3 binormal = {
+            XMFLOAT4 binormal = {
                 ((uVector.x * vector1.x) - (uVector.y * vector0.x)) * denominator,
                 ((uVector.x * vector1.y) - (uVector.y * vector0.y)) * denominator,
-                ((uVector.x * vector1.z) - (uVector.y * vector0.z)) * denominator
+                ((uVector.x * vector1.z) - (uVector.y * vector0.z)) * denominator,
+                0.f
             };
 
-            float3Normalize(&tangent);
-            float3Normalize(&binormal);
+            float4Normalize(&tangent);
+            float4Normalize(&binormal);
 
             for (int i = 0; i < 3; i++)
             {

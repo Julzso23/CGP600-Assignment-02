@@ -36,5 +36,5 @@ void Character::jump()
 
 void Character::move(const DirectX::XMVECTOR& offset)
 {
-    setPosition(position + offset);
+    setPosition(DirectX::XMVectorSetW(position + offset, 1.f));
 }

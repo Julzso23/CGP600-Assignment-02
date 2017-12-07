@@ -9,7 +9,7 @@ struct Vertex
     DirectX::XMFLOAT4 position;
     DirectX::XMFLOAT4 colour;
     DirectX::XMFLOAT2 textureCoord;
-	DirectX::XMFLOAT3 normal;
-    DirectX::XMFLOAT3 tangent;
-    DirectX::XMFLOAT3 binormal;
+	DirectX::XMFLOAT4 normal;
+    DirectX::XMFLOAT4 tangent;
+    DirectX::XMFLOAT4 binormal;
 };

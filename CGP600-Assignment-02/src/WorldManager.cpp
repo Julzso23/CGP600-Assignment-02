@@ -81,7 +81,7 @@ void WorldManager::buildInstanceBuffer()
                 if (blocks[getBlockIndex(x, y, z)])
                 {
                     BlockInstance instance;
-                    instance.position = XMFLOAT3((float)x, (float)y, (float)z);
+                    instance.position = XMFLOAT4((float)x, (float)y, (float)z, 0.f);
                     instance.textureId = getBlock(x, y, z)->textureId;
                     instances.push_back(instance);
                 }
@@ -171,10 +171,11 @@ WorldManager::WorldManager() :
 {
     // Setup the directional light
     directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
-    directionalLight.setColour(XMFLOAT4(1.f, 1.f, 1.f, 1.f));
-    directionalLight.setAmbientColour(XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f));
+    directionalLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));
+    directionalLight.setAmbientColour(XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f));
 
-    pointLight.setColour(XMFLOAT4(1.f, 1.f, 1.f, 1.f));
+    pointLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));
+    pointLight.setPosition(XMVectorZero());
 }
 
 WorldManager::~WorldManager()
@@ -205,17 +206,17 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     player.setPlaceBlockFunction([&](Segment ray)
     {
     });
-    player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+    player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
 
     blockObject = std::make_unique<BlockObject>(device, immediateContext);
     D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "INST_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "INST_POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         { "TEXID", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
     };
     blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));

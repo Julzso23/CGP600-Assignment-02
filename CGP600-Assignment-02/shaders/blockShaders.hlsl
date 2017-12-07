@@ -17,21 +17,22 @@ struct VIn
     float4 position : POSITION;
     float4 colour : COLOR;
     float2 texcoord : TEXCOORD;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 binormal : BINORMAL;
-    float3 instancePosition : INST_POSITION;
+    float4 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float4 binormal : BINORMAL;
+    float4 instancePosition : INST_POSITION;
     uint textureId : TEXID;
 };
 
 struct VOut
 {
     float4 position : SV_POSITION;
+    float4 worldPosition : POSITION;
     float4 colour : COLOR;
     float2 texcoord : TEXCOORD;
-	float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 binormal : BINORMAL;
+    float4 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float4 binormal : BINORMAL;
     uint textureId : TEXID;
 };
 
@@ -41,9 +42,10 @@ SamplerState sampler0;
 VOut VShader(VIn input)
 {
     VOut output;
-    output.position = mul(worldViewProjection, float4(input.position.xyz + input.instancePosition, 1.f));
+    output.position = mul(worldViewProjection, float4(input.position.xyz + input.instancePosition.xyz, 1.f));
+    output.worldPosition = float4(input.position.xyz + input.instancePosition.xyz, 1.f);
     output.colour = ambientLightColour;
-    output.texcoord = input.texcoord / 2.f;
+    output.texcoord = input.texcoord;
 	output.normal = input.normal;
     output.tangent = input.tangent;
     output.binormal = input.binormal;
@@ -72,19 +74,23 @@ float4 PShader(VOut input) : SV_TARGET
             break;
         }
     }
-
-    float4 pointLightDirection = input.position - mul(worldViewProjection, pointLightPosition);
     
     float3 normal = (normalColour.xyz * 2.f) - 1.f;
-    normal = (normal.x * input.tangent) + (normal.y * input.binormal) + (normal.z * input.normal);
-    float diffuseAmount = 0.f;
-    if (length(pointLightDirection) < 5.f)
-    {
-    }
-    diffuseAmount = dot(normalize(pointLightDirection).xyz, normal);
-    /*diffuseAmount += dot(normalize(lightDirection.xyz), normal);*/
-    diffuseAmount = saturate(diffuseAmount);
+    normal = (normal.x * input.tangent.xyz) + (normal.y * input.binormal.xyz) + (normal.z * input.normal.xyz);
 
-    input.colour += diffuseAmount * pointLightColour;
+    float pointDiffuse = 0.f;
+    float4 pointLightDirection = pointLightPosition - input.worldPosition;
+    if (length(pointLightDirection) < 20.f)
+    {
+        pointDiffuse = dot(normalize(pointLightDirection.xyz), normal);
+    }
+    pointDiffuse = saturate(pointDiffuse);
+
+    float directionalDiffuse = 0.f;
+    directionalDiffuse += dot(normalize(lightDirection.xyz), normal);
+    directionalDiffuse = saturate(directionalDiffuse);
+
+    input.colour += pointDiffuse * pointLightColour;
+    //input.colour += directionalDiffuse * directionalLightColour;
     return input.colour * textureColour;
 }
