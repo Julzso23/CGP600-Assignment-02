@@ -5,16 +5,16 @@
 class DirectionalLight
 {
     private:
-        static DirectX::XMVECTOR ambientColour;
-        DirectX::XMVECTOR colour;
+        static DirectX::XMFLOAT4 ambientColour;
+        DirectX::XMFLOAT4 colour;
         DirectX::XMVECTOR direction;
         mutable std::mutex mutex;
     public:
-        static void setAmbientColour(DirectX::XMVECTOR colour);
-        static DirectX::XMVECTOR getAmbientColour();
+        static void setAmbientColour(DirectX::XMFLOAT4 colour);
+        static DirectX::XMFLOAT4 getAmbientColour();
 
-        void setColour(DirectX::XMVECTOR colour);
-        DirectX::XMVECTOR getColour() const;
+        void setColour(DirectX::XMFLOAT4 colour);
+        DirectX::XMFLOAT4 getColour() const;
 
         void setDirection(DirectX::XMVECTOR direction);
         DirectX::XMVECTOR getDirection() const;

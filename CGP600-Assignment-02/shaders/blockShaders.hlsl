@@ -1,9 +1,15 @@
-cbuffer CBuffer0
+cbuffer VertexConstantBuffer
 {
     matrix worldViewProjection;
+    float4 ambientLightColour;
+};
+
+cbuffer PixelConstantBuffer
+{
     float4 lightDirection;
     float4 directionalLightColour;
-    float4 ambientLightColour;
+    float4 pointLightPosition;
+    float4 pointLightColour;
 };
 
 struct VIn
@@ -66,12 +72,19 @@ float4 PShader(VOut input) : SV_TARGET
             break;
         }
     }
+
+    float4 pointLightDirection = input.position - mul(worldViewProjection, pointLightPosition);
     
     float3 normal = (normalColour.xyz * 2.f) - 1.f;
     normal = (normal.x * input.tangent) + (normal.y * input.binormal) + (normal.z * input.normal);
-    float diffuseAmount = dot(lightDirection.xyz, normal);
+    float diffuseAmount = 0.f;
+    if (length(pointLightDirection) < 5.f)
+    {
+    }
+    diffuseAmount = dot(normalize(pointLightDirection).xyz, normal);
+    /*diffuseAmount += dot(normalize(lightDirection.xyz), normal);*/
     diffuseAmount = saturate(diffuseAmount);
 
-    input.colour += diffuseAmount * directionalLightColour;
+    input.colour += diffuseAmount * pointLightColour;
     return input.colour * textureColour;
 }

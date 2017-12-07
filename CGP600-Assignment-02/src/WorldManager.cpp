@@ -171,8 +171,10 @@ WorldManager::WorldManager() :
 {
     // Setup the directional light
     directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
-    directionalLight.setColour(DirectX::XMVectorSet(1.f, 1.f, 1.f, 1.f));
-    directionalLight.setAmbientColour(DirectX::XMVectorSet(0.3f, 0.3f, 0.3f, 1.f));
+    directionalLight.setColour(XMFLOAT4(1.f, 1.f, 1.f, 1.f));
+    directionalLight.setAmbientColour(XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f));
+
+    pointLight.setColour(XMFLOAT4(1.f, 1.f, 1.f, 1.f));
 }
 
 WorldManager::~WorldManager()
@@ -305,21 +307,26 @@ std::unique_ptr<Block>& WorldManager::getBlock(int x, int y, int z)
     return blocks[getBlockIndex(x, y, z)];
 }
 
-void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0)
+void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers)
 {
     std::lock_guard<std::mutex> guard(mutex);
 
     blockObject->getMesh()->setShaders(immediateContext);
 
-    ConstantBuffer0 constantBuffer0Value = {
+    VertexConstantBuffer vertexConstantBufferValue = {
         player.getCamera()->getViewMatrix(),
-        DirectX::XMVectorNegate(directionalLight.getDirection()),
-        directionalLight.getColour(),
         directionalLight.getAmbientColour()
     };
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-    immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
+    PixelConstantBuffer pixelConstantBufferValue = {
+        DirectX::XMVectorNegate(directionalLight.getDirection()),
+        directionalLight.getColour(),
+        pointLight.getPosition(),
+        pointLight.getColour()
+    };
+    immediateContext->UpdateSubresource(constantBuffers[0], 0, 0, &vertexConstantBufferValue, 0, 0);
+    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffers[0]);
+    immediateContext->UpdateSubresource(constantBuffers[1], 0, 0, &pixelConstantBufferValue, 0, 0);
+    immediateContext->PSSetConstantBuffers(1, 1, &constantBuffers[1]);
     immediateContext->PSSetShaderResources(0, (UINT)textures.size(), textures.data());
 
     UINT strides[2] = {
@@ -340,7 +347,7 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buff
 
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
-        enemy->draw(immediateContext, constantBuffer0, constantBuffer0Value);
+        enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
 }
 
@@ -377,6 +384,8 @@ void WorldManager::update(float deltaTime)
             player.setVelocity(5.f);
         }
     }
+
+    pointLight.setPosition(player.getPosition());
 }
 
 void WorldManager::setCameraAspectRatio(UINT width, UINT height)

@@ -3,6 +3,7 @@
 #include "Block.hpp"
 #include "BlockObject.hpp"
 #include "DirectionalLight.hpp"
+#include "PointLight.hpp"
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "BlockInstance.hpp"
@@ -31,6 +32,7 @@ class WorldManager
         mutable std::mutex mutex;
 
         DirectionalLight directionalLight;
+        PointLight pointLight;
 
         Player player;
         std::vector<std::unique_ptr<Enemy>> enemies;
@@ -48,7 +50,7 @@ class WorldManager
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
         std::unique_ptr<Block>& getBlock(int x, int y, int z);
-        void renderFrame(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0);
+        void renderFrame(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers);
         void update(float deltaTime);
         void setCameraAspectRatio(UINT width, UINT height);
 };

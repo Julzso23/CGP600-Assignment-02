@@ -1,9 +1,15 @@
-cbuffer CBuffer0
+cbuffer VertexConstantBuffer
 {
     matrix worldViewProjection;
+    float4 ambientLightColour;
+};
+
+cbuffer PixelConstantBuffer
+{
     float4 lightDirection;
     float4 directionalLightColour;
-    float4 ambientLightColour;
+    float4 pointLightPosition;
+    float4 pointLightColour;
 };
 
 struct VIn

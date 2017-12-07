@@ -23,7 +23,7 @@ class Window
         IDXGISwapChain* swapChain = NULL;
         ID3D11RenderTargetView* backBufferRTView = NULL;
         float* backgroundClearColour;
-        ID3D11Buffer* constantBuffer0;
+        std::vector<ID3D11Buffer*> constantBuffers;
         ID3D11DepthStencilView* zBuffer;
         std::chrono::high_resolution_clock::time_point updateLastTime;
         std::chrono::high_resolution_clock::time_point renderLastTime;

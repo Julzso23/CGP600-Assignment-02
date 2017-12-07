@@ -132,6 +132,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\PointLight.cpp" />
     <ClCompile Include="src\Transformable.cpp" />
     <ClCompile Include="src\Utility.cpp" />
     <ClCompile Include="src\Window.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="include\Mesh.hpp" />
     <ClInclude Include="include\PerlinNoise.hpp" />
     <ClInclude Include="include\Player.hpp" />
+    <ClInclude Include="include\PointLight.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
     <ClInclude Include="include\Utility.hpp" />
     <ClInclude Include="include\Vertex.hpp" />

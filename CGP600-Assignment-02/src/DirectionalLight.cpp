@@ -1,25 +1,25 @@
 #include "DirectionalLight.hpp"
 
-DirectX::XMVECTOR DirectionalLight::ambientColour;
+DirectX::XMFLOAT4 DirectionalLight::ambientColour;
 
-void DirectionalLight::setAmbientColour(DirectX::XMVECTOR colour)
+void DirectionalLight::setAmbientColour(DirectX::XMFLOAT4 colour)
 {
     ambientColour = colour;
 }
 
-DirectX::XMVECTOR DirectionalLight::getAmbientColour()
+DirectX::XMFLOAT4 DirectionalLight::getAmbientColour()
 {
     return ambientColour;
 }
 
-void DirectionalLight::setColour(DirectX::XMVECTOR colour)
+void DirectionalLight::setColour(DirectX::XMFLOAT4 colour)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
     this->colour = colour;
 }
 
-DirectX::XMVECTOR DirectionalLight::getColour() const
+DirectX::XMFLOAT4 DirectionalLight::getColour() const
 {
     std::lock_guard<std::mutex> lock(mutex);
 

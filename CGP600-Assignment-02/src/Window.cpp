@@ -160,13 +160,16 @@ HRESULT Window::initialiseGraphics()
 
     worldManager.initialise(&window, device, immediateContext);
 
-    D3D11_BUFFER_DESC constantBuffer0Description;
-    ZeroMemory(&constantBuffer0Description, sizeof(constantBuffer0Description));
-    constantBuffer0Description.Usage = D3D11_USAGE_DEFAULT;
-    constantBuffer0Description.ByteWidth = 112;
-    constantBuffer0Description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    D3D11_BUFFER_DESC constantBufferDescription;
+    ZeroMemory(&constantBufferDescription, sizeof(constantBufferDescription));
+    constantBufferDescription.Usage = D3D11_USAGE_DEFAULT;
+    constantBufferDescription.ByteWidth = sizeof(VertexConstantBuffer);
+    constantBufferDescription.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-    result = device->CreateBuffer(&constantBuffer0Description, NULL, &constantBuffer0);
+    constantBuffers.resize(2);
+    result = device->CreateBuffer(&constantBufferDescription, NULL, &constantBuffers[0]);
+    constantBufferDescription.ByteWidth = sizeof(PixelConstantBuffer);
+    result = device->CreateBuffer(&constantBufferDescription, NULL, &constantBuffers[1]);
 
     if (FAILED(result))
     {
@@ -183,7 +186,15 @@ HRESULT Window::initialiseGraphics()
 void Window::shutdownD3D()
 {
     if (zBuffer) zBuffer->Release();
-    if (constantBuffer0) constantBuffer0->Release();
+
+    for (ID3D11Buffer* buffer : constantBuffers)
+    {
+        if (buffer)
+        {
+            buffer->Release();
+        }
+    }
+
     if (backBufferRTView) backBufferRTView->Release();
     if (swapChain) swapChain->Release();
     if (immediateContext) immediateContext->Release();
@@ -279,9 +290,9 @@ void Window::update()
     float deltaTime = std::chrono::duration<float>(currentTime - updateLastTime).count();
     updateLastTime = currentTime;
 
-    if (deltaTime > 0.5f)
+    if (deltaTime > 0.1f)
     {
-        deltaTime = 0.5f;
+        deltaTime = 0.1f;
     }
 
     worldManager.update(deltaTime);
@@ -304,7 +315,7 @@ void Window::renderFrame()
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-    worldManager.renderFrame(immediateContext, constantBuffer0);
+    worldManager.renderFrame(immediateContext, constantBuffers);
 
     swapChain->Present(0, 0);
 }

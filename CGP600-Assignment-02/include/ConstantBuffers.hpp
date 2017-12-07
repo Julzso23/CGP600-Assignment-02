@@ -4,10 +4,16 @@
 #define XM_NO_ALIGNMENT
 #include <DirectXMath.h>
 
-struct ConstantBuffer0
+struct VertexConstantBuffer
 {
     DirectX::XMMATRIX worldViewProjection;
+    DirectX::XMFLOAT4 ambientLightColour;
+};
+
+struct PixelConstantBuffer
+{
     DirectX::XMVECTOR lightDirection;
-    DirectX::XMVECTOR directionalLightColour;
-    DirectX::XMVECTOR ambientLightColour;
+    DirectX::XMFLOAT4 directionalLightColour;
+    DirectX::XMVECTOR pointLightPosition;
+    DirectX::XMFLOAT4 pointLightColour;
 };

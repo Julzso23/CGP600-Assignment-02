@@ -10,7 +10,7 @@ class Enemy : public Character
         Mesh mesh;
     public:
         void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
-        void draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0, ConstantBuffer0 constantBuffer0Value);
+        void draw(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers, VertexConstantBuffer vertexConstantBufferValue);
 		void setPosition(const DirectX::XMVECTOR& position);
 		void update(float deltaTime);
 		void moveTowards(DirectX::XMVECTOR position, float deltaTime);

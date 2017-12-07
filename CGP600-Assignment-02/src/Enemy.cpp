@@ -19,14 +19,14 @@ void Enemy::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateConte
     mesh.loadShaders(L"shaders/modelShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
 }
 
-void Enemy::draw(ID3D11DeviceContext* immediateContext, ID3D11Buffer* constantBuffer0, ConstantBuffer0 constantBuffer0Value)
+void Enemy::draw(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers, VertexConstantBuffer vertexConstantBufferValue)
 {
     mesh.setShaders(immediateContext);
     
-    constantBuffer0Value.worldViewProjection = mesh.getTransform() * constantBuffer0Value.worldViewProjection;
-    immediateContext->UpdateSubresource(constantBuffer0, 0, 0, &constantBuffer0Value, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer0);
-    immediateContext->PSSetConstantBuffers(0, 1, &constantBuffer0);
+    vertexConstantBufferValue.worldViewProjection = mesh.getTransform() * vertexConstantBufferValue.worldViewProjection;
+    immediateContext->UpdateSubresource(constantBuffers[0], 0, 0, &vertexConstantBufferValue, 0, 0);
+    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffers[0]);
+    immediateContext->PSSetConstantBuffers(0, 1, &constantBuffers[1]);
 
     ID3D11ShaderResourceView* textures[] = {
         mesh.getTexture(),
