@@ -1,4 +1,5 @@
 #include "Enemy.hpp"
+#include <random>
 
 using namespace DirectX;
 
@@ -17,6 +18,13 @@ void Enemy::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateConte
         { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
     mesh.loadShaders(L"shaders/modelShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
+
+    std::random_device randomDevice;
+    std::default_random_engine randomEngine(randomDevice());
+    std::uniform_real_distribution<float> distribution(0.75f, 1.25f); // Random scale with range of 75% to 125%
+    float scale = distribution(randomEngine);
+    setSize(getSize() * scale);
+    mesh.setScale(DirectX::XMVectorSet(scale, scale, scale, 0.f));
 }
 
 void Enemy::draw(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers, VertexConstantBuffer vertexConstantBufferValue)
