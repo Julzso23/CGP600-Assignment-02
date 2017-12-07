@@ -92,6 +92,6 @@ float4 PShader(VOut input) : SV_TARGET
     directionalDiffuse = saturate(directionalDiffuse);
 
     input.colour += pointDiffuse * pointLightColour;
-    //input.colour += directionalDiffuse * directionalLightColour;
+    input.colour += directionalDiffuse * directionalLightColour;
     return input.colour * textureColour;
 }

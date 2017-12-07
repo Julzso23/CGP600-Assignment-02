@@ -173,18 +173,30 @@ HRESULT Window::initialiseGraphics()
 
     if (FAILED(result))
     {
-        OutputDebugString("#### Failed to create constant buffer 0! ####\n");
+        OutputDebugString("#### Failed to create constant buffers! ####\n");
         return result;
     }
 
-    RECT rect;
-    GetClientRect(window, &rect);
+    D3D11_BLEND_DESC blendStateDescription;
+    ZeroMemory(&blendStateDescription, sizeof(blendStateDescription));
+    blendStateDescription.RenderTarget[0].BlendEnable = true;
+    blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendStateDescription.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    device->CreateBlendState(&blendStateDescription, &blendState);
+
+    immediateContext->OMSetBlendState(blendState, NULL, 0xffffffff);
 
     return S_OK;
 }
 
 void Window::shutdownD3D()
 {
+    if (blendState) blendState->Release();
     if (zBuffer) zBuffer->Release();
 
     for (ID3D11Buffer* buffer : constantBuffers)

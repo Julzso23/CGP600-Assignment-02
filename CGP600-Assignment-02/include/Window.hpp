@@ -25,6 +25,7 @@ class Window
         float* backgroundClearColour;
         std::vector<ID3D11Buffer*> constantBuffers;
         ID3D11DepthStencilView* zBuffer;
+        ID3D11BlendState* blendState = NULL;
         std::chrono::high_resolution_clock::time_point updateLastTime;
         std::chrono::high_resolution_clock::time_point renderLastTime;
         WorldManager worldManager;

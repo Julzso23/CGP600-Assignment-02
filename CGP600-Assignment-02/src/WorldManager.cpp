@@ -171,7 +171,7 @@ WorldManager::WorldManager() :
 {
     // Setup the directional light
     directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
-    directionalLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));
+    directionalLight.setColour(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f));
     directionalLight.setAmbientColour(XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f));
 
     pointLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));

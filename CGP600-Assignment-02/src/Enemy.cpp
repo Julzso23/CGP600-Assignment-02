@@ -5,7 +5,7 @@ using namespace DirectX;
 void Enemy::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
     mesh.loadFromFile("models/character.obj");
-    mesh.loadTexture(device, L"textures/dry-dirt2-albedo.png", L"textures/dry-dirt2-normal.png");
+    mesh.loadTexture(device, L"textures/Ghost-albedo.png", L"textures/Ghost-normal.png");
     mesh.initialiseVertexBuffer(device, immediateContext);
 
     D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
