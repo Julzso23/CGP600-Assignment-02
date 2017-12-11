@@ -324,10 +324,11 @@ void Window::renderFrame()
     renderLastTime = currentTime;
     printf("%ffps\n", 1.f / deltaTime);
 
+    immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-    worldManager.renderFrame(immediateContext, constantBuffers);
+    worldManager.renderFrame(constantBuffers, blendState);
 
     swapChain->Present(0, 0);
 }

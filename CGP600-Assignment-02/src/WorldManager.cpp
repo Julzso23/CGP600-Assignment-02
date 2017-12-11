@@ -194,6 +194,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     this->device = device;
     this->immediateContext = immediateContext;
 
+    spriteBatch = std::make_unique<SpriteBatch>(immediateContext);
+    spriteFont = std::make_unique<SpriteFont>(device, L"fonts/comicsans.spritefont");
+
     player.initialise(windowHandle);
     player.setBreakBlockFunction([&](Segment ray)
     {
@@ -238,9 +241,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     textures.push_back(texture);
     CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-normal.png", NULL, &texture);
     textures.push_back(texture);
-    CreateWICTextureFromFile(device, immediateContext, L"textures/grass1-albedo.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/redbricks2b-albedo.png", NULL, &texture);
     textures.push_back(texture);
-    CreateWICTextureFromFile(device, immediateContext, L"textures/grass1-normal.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/redbricks2b-normal.png", NULL, &texture);
     textures.push_back(texture);
 
     for (int x = 0; x < width; x++)
@@ -309,7 +312,7 @@ std::unique_ptr<Block>& WorldManager::getBlock(int x, int y, int z)
     return blocks[getBlockIndex(x, y, z)];
 }
 
-void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers)
+void WorldManager::renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState)
 {
     std::lock_guard<std::mutex> guard(mutex);
 
@@ -352,6 +355,10 @@ void WorldManager::renderFrame(ID3D11DeviceContext* immediateContext, std::vecto
     {
         enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
+
+    /*spriteBatch->Begin(SpriteSortMode_BackToFront);
+    spriteFont->DrawString(spriteBatch.get(), L"This is some test text.", XMFLOAT2(10.f, 10.f));
+    spriteBatch->End();*/
 }
 
 void WorldManager::update(float deltaTime)

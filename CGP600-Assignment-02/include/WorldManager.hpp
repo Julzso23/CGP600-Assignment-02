@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <SpriteFont.h>
 
 class WorldManager
 {
@@ -29,6 +30,8 @@ class WorldManager
         ID3D11DeviceContext* immediateContext = nullptr;
         std::unique_ptr<BlockObject> blockObject;
         std::vector<ID3D11ShaderResourceView*> textures;
+        std::unique_ptr<SpriteBatch> spriteBatch;
+        std::unique_ptr<SpriteFont> spriteFont;
         mutable std::mutex mutex;
 
         DirectionalLight directionalLight;
@@ -50,7 +53,7 @@ class WorldManager
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
         std::unique_ptr<Block>& getBlock(int x, int y, int z);
-        void renderFrame(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers);
+        void renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState);
         void update(float deltaTime);
         void setCameraAspectRatio(UINT width, UINT height);
 };
