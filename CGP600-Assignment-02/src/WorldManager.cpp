@@ -237,13 +237,13 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
 
     ID3D11ShaderResourceView* texture = nullptr;
 
-    CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-albedo.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/dirt-albedo.png", NULL, &texture);
     textures.push_back(texture);
-    CreateWICTextureFromFile(device, immediateContext, L"textures/dry-dirt2-normal.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/dirt-normal.png", NULL, &texture);
     textures.push_back(texture);
-    CreateWICTextureFromFile(device, immediateContext, L"textures/redbricks2b-albedo.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/grass-albedo.png", NULL, &texture);
     textures.push_back(texture);
-    CreateWICTextureFromFile(device, immediateContext, L"textures/redbricks2b-normal.png", NULL, &texture);
+    CreateWICTextureFromFile(device, immediateContext, L"textures/grass-normal.png", NULL, &texture);
     textures.push_back(texture);
 
     for (int x = 0; x < width; x++)
