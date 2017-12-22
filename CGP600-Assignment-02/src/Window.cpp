@@ -131,14 +131,38 @@ HRESULT Window::initialiseD3D()
         return result;
     }
     
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilDescription;
-    ZeroMemory(&depthStencilDescription, sizeof(depthStencilDescription));
-    depthStencilDescription.Format = textureDescription.Format;
-    depthStencilDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDescription;
+    ZeroMemory(&depthStencilViewDescription, sizeof(depthStencilViewDescription));
+    depthStencilViewDescription.Format = textureDescription.Format;
+    depthStencilViewDescription.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 
-    device->CreateDepthStencilView(zBufferTexture, &depthStencilDescription, &zBuffer);
+    device->CreateDepthStencilView(zBufferTexture, &depthStencilViewDescription, &zBuffer);
     zBufferTexture->Release();
 
+    D3D11_DEPTH_STENCIL_DESC depthStencilStateDescription;
+    ZeroMemory(&depthStencilStateDescription, sizeof(depthStencilStateDescription));
+    // Depth test parameters
+    depthStencilStateDescription.DepthEnable = true;
+    depthStencilStateDescription.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilStateDescription.DepthFunc = D3D11_COMPARISON_LESS;
+    // Stencil test parameters
+    depthStencilStateDescription.StencilEnable = true;
+    depthStencilStateDescription.StencilReadMask = 0xFF;
+    depthStencilStateDescription.StencilWriteMask = 0xFF;
+    // Stencil operations if pixel is front-facing
+    depthStencilStateDescription.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilStateDescription.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    depthStencilStateDescription.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilStateDescription.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    // Stencil operations if pixel is back-facing
+    depthStencilStateDescription.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilStateDescription.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    depthStencilStateDescription.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilStateDescription.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    device->CreateDepthStencilState(&depthStencilStateDescription, &depthStencilState);
+
+    immediateContext->OMSetDepthStencilState(depthStencilState, 1);
     immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
 
     D3D11_VIEWPORT viewport;
@@ -324,6 +348,7 @@ void Window::renderFrame()
     renderLastTime = currentTime;
     printf("%ffps\n", 1.f / deltaTime);
 
+    immediateContext->OMSetDepthStencilState(depthStencilState, 1);
     immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);

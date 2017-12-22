@@ -356,9 +356,9 @@ void WorldManager::renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D
         enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
 
-    /*spriteBatch->Begin(SpriteSortMode_BackToFront);
+    spriteBatch->Begin();
     spriteFont->DrawString(spriteBatch.get(), L"This is some test text.", XMFLOAT2(10.f, 10.f));
-    spriteBatch->End();*/
+    spriteBatch->End();
 }
 
 void WorldManager::update(float deltaTime)
