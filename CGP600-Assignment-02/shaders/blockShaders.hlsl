@@ -78,7 +78,9 @@ float4 PShader(VOut input) : SV_TARGET
     }
     
     float3 normal = (normalColour.xyz * 2.f) - 1.f;
-    normal = (normal.x * input.tangent.xyz) + (normal.y * input.binormal.xyz) + (normal.z * input.normal.xyz);
+    float3x3 TBN = float3x3(input.tangent.xyz, input.binormal.xyz, input.normal.xyz);
+    TBN = transpose(TBN);
+    normal = mul(TBN, normal);
 
     float pointDiffuse = 0.f;
     float4 pointLightDirection = pointLightPosition - input.worldPosition;
@@ -91,7 +93,7 @@ float4 PShader(VOut input) : SV_TARGET
     directionalDiffuse += dot(normalize(lightDirection.xyz), normal);
     directionalDiffuse = saturate(directionalDiffuse);
 
-    input.colour += pointDiffuse * pointLightColour;
+    input.colour += pointDiffuse * pointLightColour * 2.f;
     input.colour += directionalDiffuse * directionalLightColour;
     return input.colour * textureColour;
 }
