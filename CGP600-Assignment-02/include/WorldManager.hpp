@@ -53,7 +53,7 @@ class WorldManager
         void addBlock(int x, int y, int z, Block value);
         void removeBlock(int x, int y, int z);
         std::unique_ptr<Block>& getBlock(int x, int y, int z);
-        void renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState);
+        void renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState);
         void update(float deltaTime);
         void setCameraAspectRatio(UINT width, UINT height);
 };

@@ -312,7 +312,7 @@ std::unique_ptr<Block>& WorldManager::getBlock(int x, int y, int z)
     return blocks[getBlockIndex(x, y, z)];
 }
 
-void WorldManager::renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState)
+void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& constantBuffers, ID3D11BlendState* blendState)
 {
     std::lock_guard<std::mutex> guard(mutex);
 
@@ -356,8 +356,9 @@ void WorldManager::renderFrame(std::vector<ID3D11Buffer*>& constantBuffers, ID3D
         enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
 
+    // Render frame rate
     spriteBatch->Begin();
-    spriteFont->DrawString(spriteBatch.get(), L"This is some test text.", XMFLOAT2(10.f, 10.f));
+    spriteFont->DrawString(spriteBatch.get(), (std::to_wstring((int)floor(1.f / deltaTime)) + L" fps").c_str(), XMFLOAT2(10.f, 10.f));
     spriteBatch->End();
 }
 

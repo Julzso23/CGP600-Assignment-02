@@ -346,14 +346,13 @@ void Window::renderFrame()
     std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
     float deltaTime = std::chrono::duration<float>(currentTime - renderLastTime).count();
     renderLastTime = currentTime;
-    printf("%ffps\n", 1.f / deltaTime);
 
     immediateContext->OMSetDepthStencilState(depthStencilState, 1);
     immediateContext->OMSetRenderTargets(1, &backBufferRTView, zBuffer);
     immediateContext->ClearRenderTargetView(backBufferRTView, backgroundClearColour);
     immediateContext->ClearDepthStencilView(zBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-    worldManager.renderFrame(constantBuffers, blendState);
+    worldManager.renderFrame(deltaTime, constantBuffers, blendState);
 
     swapChain->Present(0, 0);
 }
