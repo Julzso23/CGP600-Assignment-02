@@ -29,6 +29,7 @@ class WorldManager
         ID3D11Device* device = nullptr;
         ID3D11DeviceContext* immediateContext = nullptr;
         std::unique_ptr<BlockObject> blockObject;
+        Mesh skybox;
         std::vector<ID3D11ShaderResourceView*> textures;
         std::unique_ptr<SpriteBatch> spriteBatch;
         std::unique_ptr<SpriteFont> spriteFont;

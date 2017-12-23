@@ -213,7 +213,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
 
     blockObject = std::make_unique<BlockObject>(device, immediateContext);
-    D3D11_INPUT_ELEMENT_DESC inputElementDescriptions[] = {
+    D3D11_INPUT_ELEMENT_DESC blockInputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -223,7 +223,20 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         { "INST_POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         { "TEXID", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
     };
-    blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, inputElementDescriptions, ARRAYSIZE(inputElementDescriptions));
+    blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, blockInputElementDescriptions, ARRAYSIZE(blockInputElementDescriptions));
+
+    skybox.loadFromFile("models/skybox.obj");
+    skybox.loadTexture(device, L"textures/clouds-albedo.png", L"textures/clouds-normal.png");
+    D3D11_INPUT_ELEMENT_DESC skyboxInputElementDescriptions[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+    skybox.loadShaders(L"shaders/skyboxShaders.hlsl", device, skyboxInputElementDescriptions, ARRAYSIZE(skyboxInputElementDescriptions));
+    skybox.initialiseVertexBuffer(device, immediateContext);
 
     for (int i = 0; i < 10; i++)
     {
@@ -356,6 +369,8 @@ void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& cons
         enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
 
+    skybox.draw(immediateContext, constantBuffers, vertexConstantBufferValue);
+
     // Render frame rate
     spriteBatch->Begin();
     spriteFont->DrawString(spriteBatch.get(), (std::to_wstring((int)floor(1.f / deltaTime)) + L" fps").c_str(), XMFLOAT2(10.f, 10.f));
@@ -397,6 +412,8 @@ void WorldManager::update(float deltaTime)
     }
 
     pointLight.setPosition(player.getPosition());
+
+    skybox.setPosition(player.getPosition());
 }
 
 void WorldManager::setCameraAspectRatio(UINT width, UINT height)

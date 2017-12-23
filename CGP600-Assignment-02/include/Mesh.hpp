@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vertex.hpp"
+#include "ConstantBuffers.hpp"
 #include <vector>
 #include <d3d11.h>
 #include <mutex>
@@ -54,4 +55,6 @@ class Mesh
         DirectX::XMVECTOR getScale() const;
 
         DirectX::XMMATRIX getTransform() const;
+
+        void draw(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers, VertexConstantBuffer vertexConstantBufferValue);
 };

@@ -44,7 +44,7 @@ VOut VShader(VIn input)
     output.position = mul(worldViewProjection, input.position);
     output.worldPosition = input.position;
     output.colour = ambientLightColour;
-    output.texcoord = input.texcoord / 2.f;
+    output.texcoord = input.texcoord;
 	output.normal = input.normal;
     output.tangent = input.tangent;
     output.binormal = input.binormal;

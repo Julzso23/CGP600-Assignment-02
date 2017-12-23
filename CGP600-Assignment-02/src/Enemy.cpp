@@ -29,27 +29,7 @@ void Enemy::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateConte
 
 void Enemy::draw(ID3D11DeviceContext* immediateContext, std::vector<ID3D11Buffer*>& constantBuffers, VertexConstantBuffer vertexConstantBufferValue)
 {
-    mesh.setShaders(immediateContext);
-    
-    vertexConstantBufferValue.worldViewProjection = mesh.getTransform() * vertexConstantBufferValue.worldViewProjection;
-    immediateContext->UpdateSubresource(constantBuffers[0], 0, 0, &vertexConstantBufferValue, 0, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &constantBuffers[0]);
-    immediateContext->PSSetConstantBuffers(0, 1, &constantBuffers[1]);
-
-    ID3D11ShaderResourceView* textures[] = {
-        mesh.getTexture(),
-        mesh.getNormalMap()
-    };
-
-    UINT vertexCount;
-    ID3D11Buffer* vertexBuffer = mesh.getVertexBuffer(&vertexCount);
-
-    UINT strides = sizeof(Vertex);
-    UINT offsets = 0;
-
-    immediateContext->PSSetShaderResources(0, 2, textures);
-    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &strides, &offsets);
-    immediateContext->Draw(vertexCount, 0);
+    mesh.draw(immediateContext, constantBuffers, vertexConstantBufferValue);
 }
 
 void Enemy::setPosition(const XMVECTOR& position)
