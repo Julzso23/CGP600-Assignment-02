@@ -6,7 +6,7 @@ void Player::initialise(HWND* windowHandle)
 {
     window = windowHandle;
 
-    cameraOffset = XMVectorSet(0.f, 0.5f, 0.f, 0.f);
+    cameraOffset = XMVectorSet(0.f, 0.75f, 0.f, 0.f);
 
     RECT rect;
     GetClientRect(*window, &rect);
