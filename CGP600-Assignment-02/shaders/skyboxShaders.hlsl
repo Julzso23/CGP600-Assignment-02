@@ -2,12 +2,12 @@ cbuffer VertexConstantBuffer
 {
     matrix worldViewProjection;
     float4 ambientLightColour;
+    float4 lightDirection;
+    float4 directionalLightColour;
 };
 
 cbuffer PixelConstantBuffer
 {
-    float4 lightDirection;
-    float4 directionalLightColour;
     float4 pointLightPosition;
     float4 pointLightColour;
     float pointLightFalloff;
@@ -38,7 +38,7 @@ VOut VShader(VIn input)
 {
     VOut output;
     output.position = mul(worldViewProjection, input.position);
-    output.colour = ambientLightColour;
+    output.colour = input.colour;
     output.texcoord = input.texcoord;
     return output;
 }

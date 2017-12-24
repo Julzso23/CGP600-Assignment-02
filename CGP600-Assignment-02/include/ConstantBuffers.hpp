@@ -8,12 +8,12 @@ struct VertexConstantBuffer
 {
     DirectX::XMMATRIX worldViewProjection;
     DirectX::XMFLOAT4 ambientLightColour;
+    DirectX::XMVECTOR lightDirection;
+    DirectX::XMFLOAT4 directionalLightColour;
 };
 
 struct PixelConstantBuffer
 {
-    DirectX::XMVECTOR lightDirection;
-    DirectX::XMFLOAT4 directionalLightColour;
     DirectX::XMVECTOR pointLightPosition;
     DirectX::XMFLOAT4 pointLightColour;
     float pointLightFalloff;

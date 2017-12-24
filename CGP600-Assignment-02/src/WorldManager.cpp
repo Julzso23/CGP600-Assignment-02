@@ -197,6 +197,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     spriteBatch = std::make_unique<SpriteBatch>(immediateContext);
     spriteFont = std::make_unique<SpriteFont>(device, L"fonts/comicsans.spritefont");
 
+    collisionCompute.initialise(device, immediateContext);
+    collisionCompute.run();
+
     player.initialise(windowHandle);
     player.setBreakBlockFunction([&](Segment ray)
     {
@@ -333,11 +336,11 @@ void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& cons
 
     VertexConstantBuffer vertexConstantBufferValue = {
         player.getCamera()->getViewMatrix(),
-        directionalLight.getAmbientColour()
+        directionalLight.getAmbientColour(),
+        DirectX::XMVectorNegate(directionalLight.getDirection()),
+        directionalLight.getColour()
     };
     PixelConstantBuffer pixelConstantBufferValue = {
-        DirectX::XMVectorNegate(directionalLight.getDirection()),
-        directionalLight.getColour(),
         pointLight.getPosition(),
         pointLight.getColour(),
         pointLight.getFalloff()
