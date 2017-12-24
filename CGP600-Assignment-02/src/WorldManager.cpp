@@ -374,6 +374,12 @@ void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& cons
     // Render frame rate
     spriteBatch->Begin();
     spriteFont->DrawString(spriteBatch.get(), (std::to_wstring((int)floor(1.f / deltaTime)) + L" fps").c_str(), XMFLOAT2(10.f, 10.f));
+    spriteFont->DrawString(spriteBatch.get(), L"W A S D to move", XMFLOAT2(10.f, 30.f));
+    spriteFont->DrawString(spriteBatch.get(), L"Hold shift while moving to sprint", XMFLOAT2(10.f, 50.f));
+    spriteFont->DrawString(spriteBatch.get(), L"Space to jump", XMFLOAT2(10.f, 70.f));
+    spriteFont->DrawString(spriteBatch.get(), L"Move the mouse to rotate the camera", XMFLOAT2(10.f, 90.f));
+    spriteFont->DrawString(spriteBatch.get(), L"Left mouse button to break a block", XMFLOAT2(10.f, 110.f));
+    spriteFont->DrawString(spriteBatch.get(), L"Right mouse button to place a block", XMFLOAT2(10.f, 130.f));
     spriteBatch->End();
 }
 
