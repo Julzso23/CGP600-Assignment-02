@@ -215,6 +215,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
 
+    player.addChild(&pointLight);
+    pointLight.setLocalPosition(XMVectorSet(0.f, 1.f, 0.f, 1.f));
+
     blockObject = std::make_unique<BlockObject>(device, immediateContext);
     D3D11_INPUT_ELEMENT_DESC blockInputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -419,8 +422,6 @@ void WorldManager::update(float deltaTime)
             player.setVelocity(5.f);
         }
     }
-
-    pointLight.setPosition(player.getPosition() + XMVectorSet(0.f, 1.f, 0.f, 1.f));
 
     skybox.setPosition(player.getPosition());
 }
