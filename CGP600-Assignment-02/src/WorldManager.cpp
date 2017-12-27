@@ -157,7 +157,7 @@ void WorldManager::handleCharacterCollision(Character& character)
 
 void WorldManager::generateBlock(int x, int y, int z)
 {
-    const float scaleFactor = 16.f;
+    const float scaleFactor = 32.f;
 
     if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
     {
