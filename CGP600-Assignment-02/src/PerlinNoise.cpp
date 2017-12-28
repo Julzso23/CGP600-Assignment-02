@@ -67,3 +67,8 @@ float PerlinNoise::noise(float x, float y, float z)
 
     return (result + 1.f) / 2.f;
 }
+
+std::vector<int> PerlinNoise::getPermutation()
+{
+    return permutation;
+}

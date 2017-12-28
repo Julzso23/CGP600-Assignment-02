@@ -13,4 +13,5 @@ class PerlinNoise
     public:
         PerlinNoise(unsigned int seed);
         float noise(float x, float y, float z);
+        std::vector<int> getPermutation();
 };
