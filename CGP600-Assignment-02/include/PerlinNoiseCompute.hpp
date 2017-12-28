@@ -5,7 +5,7 @@
 #include <vector>
 #include "PerlinNoise.hpp"
 
-class CollisionCompute
+class PerlinNoiseCompute
 {
     private:
         ID3D11Device* device;
@@ -13,11 +13,12 @@ class CollisionCompute
         ID3D11ComputeShader* shader = nullptr;
         ID3D11Buffer* dataBuffer = nullptr;
         ID3D11Buffer* permutationBuffer = nullptr;
-        bool blockValues[64*64*64];
+        std::vector<UINT> blockValues;
         std::vector<int> permutation;
         PerlinNoise perlinNoise;
     public:
-        CollisionCompute();
+        PerlinNoiseCompute();
+        ~PerlinNoiseCompute();
         void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void run();
 };

@@ -1,13 +1,19 @@
-#include "collision/CollisionCompute.hpp"
+#include "PerlinNoiseCompute.hpp"
 #include <d3dcompiler.h>
 #include <random>
 
-CollisionCompute::CollisionCompute() :
+PerlinNoiseCompute::PerlinNoiseCompute() :
     perlinNoise(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()))
 {
 }
 
-void CollisionCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
+PerlinNoiseCompute::~PerlinNoiseCompute()
+{
+    if (dataBuffer) dataBuffer->Release();
+    if (permutationBuffer) permutationBuffer->Release();
+}
+
+void PerlinNoiseCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
     this->device = device;
     this->immediateContext = immediateContext;
@@ -20,7 +26,7 @@ void CollisionCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* imm
     ID3DBlob* shaderBlob = nullptr;
     ID3DBlob* errorBlob = nullptr;
     HRESULT result = D3DCompileFromFile(
-        L"shaders/collisionCompute.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        L"shaders/perlinNoiseCompute.hlsl", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
         "CShader", "cs_5_0", flags, 0, &shaderBlob, &errorBlob
     );
 
@@ -41,19 +47,20 @@ void CollisionCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* imm
     {
         OutputDebugString("#### Failed to create compute shader! ####\n");
     }
+
+    blockValues.assign(64 * 64 * 64, 0);
 }
 
-void CollisionCompute::run()
+void PerlinNoiseCompute::run()
 {
     D3D11_BUFFER_DESC gpuBufferDescription;
     ZeroMemory(&gpuBufferDescription, sizeof(gpuBufferDescription));
     gpuBufferDescription.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-    gpuBufferDescription.ByteWidth = sizeof(bool) * 64*64*64;
-    gpuBufferDescription.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    gpuBufferDescription.StructureByteStride = sizeof(bool);
+    gpuBufferDescription.ByteWidth = sizeof(UINT) * (UINT)blockValues.size();
+    gpuBufferDescription.StructureByteStride = sizeof(UINT);
 
     D3D11_SUBRESOURCE_DATA initData;
-    initData.pSysMem = blockValues;
+    initData.pSysMem = blockValues.data();
     
     device->CreateBuffer(&gpuBufferDescription, &initData, &dataBuffer);
 
@@ -74,16 +81,15 @@ void CollisionCompute::run()
     ZeroMemory(&resourceViewDescription, sizeof(resourceViewDescription));
     resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
     resourceViewDescription.BufferEx.FirstElement = 0;
+    resourceViewDescription.Format = DXGI_FORMAT_UNKNOWN;
 
-    resourceViewDescription.Format = DXGI_FORMAT_R8_UINT;
-    resourceViewDescription.BufferEx.NumElements = 64 * 64 * 64;
-    device->CreateShaderResourceView(dataBuffer, &resourceViewDescription, &resources[0]);
+    resourceViewDescription.BufferEx.NumElements = (UINT)blockValues.size();
+    device->CreateShaderResourceView(dataBuffer, NULL, &resources[0]);
 
-    resourceViewDescription.Format = DXGI_FORMAT_R32_SINT;
     resourceViewDescription.BufferEx.NumElements = (UINT)permutation.size();
-    device->CreateShaderResourceView(permutationBuffer, &resourceViewDescription, &resources[1]);
+    device->CreateShaderResourceView(permutationBuffer, NULL, &resources[1]);
 
     immediateContext->CSSetShader(shader, NULL, 0);
     immediateContext->CSSetShaderResources(0, 2, resources);
-    immediateContext->Dispatch(64, 64, 64);
+    immediateContext->Dispatch(8, 8, 8);
 }

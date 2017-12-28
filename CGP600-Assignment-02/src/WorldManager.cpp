@@ -197,8 +197,8 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     spriteBatch = std::make_unique<SpriteBatch>(immediateContext);
     spriteFont = std::make_unique<SpriteFont>(device, L"fonts/comicsans.spritefont");
 
-    collisionCompute.initialise(device, immediateContext);
-    collisionCompute.run();
+    perlinNoiseCompute.initialise(device, immediateContext);
+    perlinNoiseCompute.run();
 
     player.initialise(windowHandle);
     player.setBreakBlockFunction([&](Segment ray)

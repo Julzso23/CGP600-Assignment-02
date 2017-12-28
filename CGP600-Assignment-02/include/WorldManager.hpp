@@ -8,7 +8,7 @@
 #include "Enemy.hpp"
 #include "BlockInstance.hpp"
 #include "PerlinNoise.hpp"
-#include "collision/CollisionCompute.hpp"
+#include "PerlinNoiseCompute.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -34,7 +34,7 @@ class WorldManager
         std::vector<ID3D11ShaderResourceView*> textures;
         std::unique_ptr<SpriteBatch> spriteBatch;
         std::unique_ptr<SpriteFont> spriteFont;
-        CollisionCompute collisionCompute;
+        PerlinNoiseCompute perlinNoiseCompute;
         mutable std::mutex mutex;
 
         DirectionalLight directionalLight;

@@ -1,4 +1,4 @@
-RWStructuredBuffer<bool> blockValues : register(u0);
+RWBuffer<uint> blockValues : register(u0);
 RWStructuredBuffer<int> permutation : register(u1);
 
 static const int width = 64;
@@ -77,7 +77,7 @@ void CShader(uint3 dispatchThreadID : SV_DispatchThreadID)
             {
                 //if (noise(x, y, z) > 0.5f)
                 {
-                    blockValues[getBlockIndex(x, y, z)] = true;
+                    blockValues[getBlockIndex(x, y, z)] = 9999;
                 }
                 /*else
                 {
