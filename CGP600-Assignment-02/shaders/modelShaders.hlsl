@@ -19,9 +19,9 @@ struct VIn
     float4 position : POSITION;
     float4 colour : COLOR;
     float2 texcoord : TEXCOORD;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 binormal : BINORMAL;
+    float4 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float4 binormal : BINORMAL;
 };
 
 struct VOut
@@ -48,9 +48,9 @@ VOut VShader(VIn input)
     output.worldPosition = input.position;
     output.colour = ambientLightColour + (directionalDiffuse * directionalLightColour);
     output.texcoord = input.texcoord;
-	output.normal = input.normal;
-    output.tangent = input.tangent;
-    output.binormal = input.binormal;
+	output.normal = input.normal.xyz;
+    output.tangent = input.tangent.xyz;
+    output.binormal = input.binormal.xyz;
     return output;
 }
 
