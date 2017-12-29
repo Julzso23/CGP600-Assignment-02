@@ -58,7 +58,7 @@ void PerlinNoiseCompute::run()
     D3D11_BUFFER_DESC bufferDescription;
     ZeroMemory(&bufferDescription, sizeof(bufferDescription));
     bufferDescription.Usage = D3D11_USAGE_DEFAULT;
-    bufferDescription.ByteWidth = sizeof(UINT) * (UINT)blockValues.size();
+    bufferDescription.ByteWidth = sizeof(uint8_t) * (UINT)blockValues.size();
     bufferDescription.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
     bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
     bufferDescription.StructureByteStride = sizeof(UINT);
@@ -68,7 +68,7 @@ void PerlinNoiseCompute::run()
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
     immediateContext->Map(dataBuffer, NULL, D3D11_MAP_WRITE, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, blockValues.data(), (UINT)blockValues.size() * sizeof(UINT));
+    memcpy(mappedSubresource.pData, blockValues.data(), (UINT)blockValues.size() * sizeof(uint8_t));
     immediateContext->Unmap(dataBuffer, NULL);
 
     bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
@@ -90,7 +90,7 @@ void PerlinNoiseCompute::run()
     ZeroMemory(&uavDescription, sizeof(uavDescription));
     uavDescription.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
     uavDescription.Buffer.NumElements = (UINT)blockValues.size();
-    uavDescription.Format = DXGI_FORMAT_R32_UINT;
+    uavDescription.Format = DXGI_FORMAT_R8_UINT;
     uavDescription.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 
     result = device->CreateUnorderedAccessView(dataBuffer, &uavDescription, &dataUAV);
@@ -111,11 +111,11 @@ void PerlinNoiseCompute::run()
     immediateContext->Dispatch(8, 8, 8);
 
     immediateContext->Map(dataBuffer, NULL, D3D11_MAP_READ, NULL, &mappedSubresource);
-    blockValues.assign(reinterpret_cast<UINT*>(mappedSubresource.pData), reinterpret_cast<UINT*>(mappedSubresource.pData) + (mappedSubresource.RowPitch / sizeof(UINT)));
+    blockValues.assign(reinterpret_cast<uint8_t*>(mappedSubresource.pData), reinterpret_cast<uint8_t*>(mappedSubresource.pData) + (mappedSubresource.RowPitch / sizeof(uint8_t)));
     immediateContext->Unmap(dataBuffer, NULL);
+}
 
-    if (std::find(blockValues.begin(), blockValues.end(), 1) != blockValues.end())
-    {
-        OutputDebugString("#### Compute shader worked! ####\n");
-    }
+std::vector<uint8_t> PerlinNoiseCompute::getBlockValues()
+{
+    return blockValues;
 }

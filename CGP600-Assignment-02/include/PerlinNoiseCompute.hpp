@@ -13,7 +13,7 @@ class PerlinNoiseCompute
         ID3D11ComputeShader* shader = nullptr;
         ID3D11Buffer* dataBuffer = nullptr;
         ID3D11Buffer* permutationBuffer = nullptr;
-        std::vector<UINT> blockValues;
+        std::vector<uint8_t> blockValues;
         std::vector<int> permutation;
         PerlinNoise perlinNoise;
     public:
@@ -21,4 +21,5 @@ class PerlinNoiseCompute
         ~PerlinNoiseCompute();
         void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
         void run();
+        std::vector<uint8_t> getBlockValues();
 };

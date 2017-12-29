@@ -155,19 +155,19 @@ void WorldManager::handleCharacterCollision(Character& character)
     }
 }
 
-void WorldManager::generateBlock(int x, int y, int z)
-{
-    const float scaleFactor = 32.f;
-
-    if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
-    {
-        addBlock(x, y, z, { 0 });
-    }
-}
+//void WorldManager::generateBlock(int x, int y, int z)
+//{
+//    const float scaleFactor = 32.f;
+//
+//    if (noiseGenerator.noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
+//    {
+//        addBlock(x, y, z, { 0 });
+//    }
+//}
 
 WorldManager::WorldManager() :
-    blocks(width * height * depth),
-    noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()))
+    blocks(width * height * depth)
+    /*noiseGenerator(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()))*/
 {
     // Setup the directional light
     directionalLight.setDirection(DirectX::XMVector3Normalize(DirectX::XMVectorSet(-1.f, -1.f, 1.f, 0.f)));
@@ -265,7 +265,9 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     CreateWICTextureFromFile(device, immediateContext, L"textures/grass-normal.png", NULL, &texture);
     textures.push_back(texture);
 
-    for (int x = 0; x < width; x++)
+    std::vector<uint8_t> blockValues = perlinNoiseCompute.getBlockValues();
+
+    /*for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
@@ -273,6 +275,13 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
             {
                 generateBlock(x, y, z);
             }
+        }
+    }*/
+    for (std::size_t i = 0; i < blocks.size(); i++)
+    {
+        if (blockValues[i])
+        {
+            blocks[i] = std::make_unique<Block>(Block{ 0 });
         }
     }
 

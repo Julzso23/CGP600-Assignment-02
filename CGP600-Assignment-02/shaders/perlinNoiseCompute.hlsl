@@ -1,9 +1,10 @@
-RWBuffer<uint> blockValues : register(u0);
+RWBuffer<bool> blockValues : register(u0);
 Buffer<int> permutation : register(t1);
 
 static const int width = 64;
 static const int height = 64;
 static const int depth = 64;
+static const float scaleFactor = 32.f;
 
 float fade(float time)
 {
@@ -23,7 +24,7 @@ float gradient(int hash, float x, float y, float z)
     return ((Hash & 1) == 0 ? u : -u) + ((Hash & 2) == 0 ? v : -v);
 }
 
-float noise(int x, int y, int z)
+float noise(float x, float y, float z)
 {
     int X = (int)floor(x) & 255;
     int Y = (int)floor(y) & 255;
@@ -75,14 +76,10 @@ void CShader(uint3 dispatchThreadID : SV_DispatchThreadID)
         {
             for (uint z = dispatchThreadID.z * 8; z < depth / 8 + dispatchThreadID.z * 8; z++)
             {
-                if (noise(x, y, z) > 0.5f)
+                if (noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
                 {
-                    blockValues[getBlockIndex(x, y, z)] = 1;
+                    blockValues[getBlockIndex(x, y, z)] = true;
                 }
-                /*else
-                {
-                    blockValues[getBlockIndex(x, y, z)] = false;
-                }*/
             }
         }
     }

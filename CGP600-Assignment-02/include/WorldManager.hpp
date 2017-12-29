@@ -21,7 +21,7 @@ class WorldManager
         const int height = 64;
         const int depth = 64;
 
-        PerlinNoise noiseGenerator;
+        //PerlinNoise noiseGenerator;
 
         std::vector<std::unique_ptr<Block>> blocks;
 
@@ -48,7 +48,7 @@ class WorldManager
         void removeBlock(int index);
         void buildInstanceBuffer();
         void handleCharacterCollision(Character& character);
-        void generateBlock(int x, int y, int z);
+        //void generateBlock(int x, int y, int z);
     public:
         WorldManager();
         ~WorldManager();
