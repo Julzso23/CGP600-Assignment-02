@@ -49,47 +49,73 @@ void PerlinNoiseCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* i
     }
 
     blockValues.assign(64 * 64 * 64, 0);
+
+    permutation = perlinNoise.getPermutation();
 }
 
 void PerlinNoiseCompute::run()
 {
-    D3D11_BUFFER_DESC gpuBufferDescription;
-    ZeroMemory(&gpuBufferDescription, sizeof(gpuBufferDescription));
-    gpuBufferDescription.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-    gpuBufferDescription.ByteWidth = sizeof(UINT) * (UINT)blockValues.size();
-    gpuBufferDescription.StructureByteStride = sizeof(UINT);
+    D3D11_BUFFER_DESC bufferDescription;
+    ZeroMemory(&bufferDescription, sizeof(bufferDescription));
+    bufferDescription.Usage = D3D11_USAGE_DEFAULT;
+    bufferDescription.ByteWidth = sizeof(UINT) * (UINT)blockValues.size();
+    bufferDescription.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+    bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
+    bufferDescription.StructureByteStride = sizeof(UINT);
 
-    D3D11_SUBRESOURCE_DATA initData;
-    initData.pSysMem = blockValues.data();
-    
-    device->CreateBuffer(&gpuBufferDescription, &initData, &dataBuffer);
+    // Create data buffer
+    HRESULT result = device->CreateBuffer(&bufferDescription, NULL, &dataBuffer);
 
-    permutation = perlinNoise.getPermutation();
-    gpuBufferDescription.ByteWidth = sizeof(int) * (UINT)permutation.size();
-    gpuBufferDescription.StructureByteStride = sizeof(int);
+    D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+    immediateContext->Map(dataBuffer, NULL, D3D11_MAP_WRITE, NULL, &mappedSubresource);
+    memcpy(mappedSubresource.pData, blockValues.data(), (UINT)blockValues.size() * sizeof(UINT));
+    immediateContext->Unmap(dataBuffer, NULL);
 
-    initData.pSysMem = permutation.data();
+    bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDescription.ByteWidth = sizeof(int) * (UINT)permutation.size();
+    bufferDescription.StructureByteStride = sizeof(int);
 
-    device->CreateBuffer(&gpuBufferDescription, &initData, &permutationBuffer);
+    // Create permutation buffer
+    result = device->CreateBuffer(&bufferDescription, NULL, &permutationBuffer);
 
-    ID3D11ShaderResourceView* resources[] = {
-        nullptr,
-        nullptr
-    };
+    immediateContext->Map(permutationBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+    memcpy(mappedSubresource.pData, permutation.data(), (UINT)permutation.size() * sizeof(int));
+    immediateContext->Unmap(permutationBuffer, NULL);
+
+    ID3D11UnorderedAccessView* dataUAV = nullptr;
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDescription;
+    ZeroMemory(&uavDescription, sizeof(uavDescription));
+    uavDescription.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+    uavDescription.Buffer.NumElements = (UINT)blockValues.size();
+    uavDescription.Format = DXGI_FORMAT_R32_UINT;
+    uavDescription.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+
+    result = device->CreateUnorderedAccessView(dataBuffer, &uavDescription, &dataUAV);
+
+    ID3D11ShaderResourceView* permutationResource = nullptr;
 
     D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
     ZeroMemory(&resourceViewDescription, sizeof(resourceViewDescription));
     resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-    resourceViewDescription.BufferEx.FirstElement = 0;
-    resourceViewDescription.Format = DXGI_FORMAT_UNKNOWN;
-
-    resourceViewDescription.BufferEx.NumElements = (UINT)blockValues.size();
-    device->CreateShaderResourceView(dataBuffer, NULL, &resources[0]);
-
     resourceViewDescription.BufferEx.NumElements = (UINT)permutation.size();
-    device->CreateShaderResourceView(permutationBuffer, NULL, &resources[1]);
+    resourceViewDescription.Format = DXGI_FORMAT_R32_SINT;
+
+    result = device->CreateShaderResourceView(permutationBuffer, &resourceViewDescription, &permutationResource);
 
     immediateContext->CSSetShader(shader, NULL, 0);
-    immediateContext->CSSetShaderResources(0, 2, resources);
+    immediateContext->CSSetUnorderedAccessViews(0, 1, &dataUAV, NULL);
+    immediateContext->CSSetShaderResources(0, 1, &permutationResource);
     immediateContext->Dispatch(8, 8, 8);
+
+    immediateContext->Map(dataBuffer, NULL, D3D11_MAP_READ, NULL, &mappedSubresource);
+    blockValues.assign(reinterpret_cast<UINT*>(mappedSubresource.pData), reinterpret_cast<UINT*>(mappedSubresource.pData) + (mappedSubresource.RowPitch / sizeof(UINT)));
+    immediateContext->Unmap(dataBuffer, NULL);
+
+    if (std::find(blockValues.begin(), blockValues.end(), 1) != blockValues.end())
+    {
+        OutputDebugString("#### Compute shader worked! ####\n");
+    }
 }
