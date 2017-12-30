@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <Windows.h>
 
 class PerlinNoise
 {
     private:
-        std::vector<int> permutation;
+        std::vector<UINT> permutation;
 
         float fade(float time);
         float lerp(float time, float a, float b);
@@ -13,5 +14,5 @@ class PerlinNoise
     public:
         PerlinNoise(unsigned int seed);
         float noise(float x, float y, float z);
-        std::vector<int> getPermutation();
+        std::vector<UINT> getPermutation();
 };

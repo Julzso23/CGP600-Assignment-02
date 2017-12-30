@@ -1,10 +1,15 @@
 #include "PerlinNoiseCompute.hpp"
 #include <d3dcompiler.h>
 #include <random>
+#include <numeric>
 
-PerlinNoiseCompute::PerlinNoiseCompute() :
-    perlinNoise(std::uniform_int_distribution<int>(0, 999999999)(std::random_device()))
+void PerlinNoiseCompute::generatePermutation(unsigned int seed)
 {
+    permutation.resize(256);
+    std::iota(permutation.begin(), permutation.end(), 0);
+    std::default_random_engine engine(seed);
+    std::shuffle(permutation.begin(), permutation.end(), engine);
+    permutation.insert(permutation.end(), permutation.begin(), permutation.end());
 }
 
 PerlinNoiseCompute::~PerlinNoiseCompute()
@@ -13,7 +18,7 @@ PerlinNoiseCompute::~PerlinNoiseCompute()
     if (permutationBuffer) permutationBuffer->Release();
 }
 
-void PerlinNoiseCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext)
+void PerlinNoiseCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext, unsigned int seed)
 {
     this->device = device;
     this->immediateContext = immediateContext;
@@ -50,7 +55,7 @@ void PerlinNoiseCompute::initialise(ID3D11Device* device, ID3D11DeviceContext* i
 
     blockValues.assign(64 * 64 * 64, 0);
 
-    permutation = perlinNoise.getPermutation();
+    generatePermutation(seed);
 }
 
 void PerlinNoiseCompute::run()
@@ -74,14 +79,14 @@ void PerlinNoiseCompute::run()
     bufferDescription.Usage = D3D11_USAGE_DYNAMIC;
     bufferDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     bufferDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDescription.ByteWidth = sizeof(int) * (UINT)permutation.size();
-    bufferDescription.StructureByteStride = sizeof(int);
+    bufferDescription.ByteWidth = sizeof(UINT) * (UINT)permutation.size();
+    bufferDescription.StructureByteStride = sizeof(UINT);
 
     // Create permutation buffer
     result = device->CreateBuffer(&bufferDescription, NULL, &permutationBuffer);
 
     immediateContext->Map(permutationBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-    memcpy(mappedSubresource.pData, permutation.data(), (UINT)permutation.size() * sizeof(int));
+    memcpy(mappedSubresource.pData, permutation.data(), (UINT)permutation.size() * sizeof(UINT));
     immediateContext->Unmap(permutationBuffer, NULL);
 
     ID3D11UnorderedAccessView* dataUAV = nullptr;
@@ -101,7 +106,7 @@ void PerlinNoiseCompute::run()
     ZeroMemory(&resourceViewDescription, sizeof(resourceViewDescription));
     resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
     resourceViewDescription.BufferEx.NumElements = (UINT)permutation.size();
-    resourceViewDescription.Format = DXGI_FORMAT_R32_SINT;
+    resourceViewDescription.Format = DXGI_FORMAT_R32_UINT;
 
     result = device->CreateShaderResourceView(permutationBuffer, &resourceViewDescription, &permutationResource);
 
@@ -115,7 +120,7 @@ void PerlinNoiseCompute::run()
     immediateContext->Unmap(dataBuffer, NULL);
 }
 
-std::vector<uint8_t> PerlinNoiseCompute::getBlockValues()
+std::vector<bool> PerlinNoiseCompute::getBlockValues()
 {
-    return blockValues;
+    return std::vector<bool>(blockValues.begin(), blockValues.end());
 }

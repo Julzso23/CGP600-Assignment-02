@@ -3,7 +3,6 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <vector>
-#include "PerlinNoise.hpp"
 
 class PerlinNoiseCompute
 {
@@ -14,12 +13,12 @@ class PerlinNoiseCompute
         ID3D11Buffer* dataBuffer = nullptr;
         ID3D11Buffer* permutationBuffer = nullptr;
         std::vector<uint8_t> blockValues;
-        std::vector<int> permutation;
-        PerlinNoise perlinNoise;
+        std::vector<UINT> permutation;
+
+        void generatePermutation(unsigned int seed);
     public:
-        PerlinNoiseCompute();
         ~PerlinNoiseCompute();
-        void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext);
+        void initialise(ID3D11Device* device, ID3D11DeviceContext* immediateContext, unsigned int seed);
         void run();
-        std::vector<uint8_t> getBlockValues();
+        std::vector<bool> getBlockValues();
 };

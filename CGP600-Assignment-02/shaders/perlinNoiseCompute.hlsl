@@ -1,5 +1,5 @@
 RWBuffer<bool> blockValues : register(u0);
-Buffer<int> permutation : register(t1);
+Buffer<uint> permutation : register(t0);
 
 static const int width = 64;
 static const int height = 64;
@@ -70,17 +70,8 @@ int getBlockIndex(int x, int y, int z)
 [numthreads(8, 8, 8)]
 void CShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    for (uint x = dispatchThreadID.x * 8; x < width / 8 + dispatchThreadID.x * 8; x++)
+    if (noise(dispatchThreadID.x / scaleFactor, dispatchThreadID.y / scaleFactor, dispatchThreadID.z / scaleFactor) > 0.5f)
     {
-        for (uint y = dispatchThreadID.y * 8; y < height / 8 + dispatchThreadID.y * 8; y++)
-        {
-            for (uint z = dispatchThreadID.z * 8; z < depth / 8 + dispatchThreadID.z * 8; z++)
-            {
-                if (noise((float)x / scaleFactor, (float)y / scaleFactor, (float)z / scaleFactor) > 0.5f)
-                {
-                    blockValues[getBlockIndex(x, y, z)] = true;
-                }
-            }
-        }
+        blockValues[getBlockIndex(dispatchThreadID.x, dispatchThreadID.y, dispatchThreadID.z)] = true;
     }
 }
