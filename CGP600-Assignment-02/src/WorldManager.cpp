@@ -12,10 +12,10 @@ int WorldManager::getBlockIndex(int x, int y, int z)
 // Get the index of the first block intersecting a ray
 int WorldManager::getBlockIndex(Segment ray)
 {
-    XMVECTOR playerPosition = player.getPosition();
-    int playerX = (int)floor(XMVectorGetX(playerPosition));
-    int playerY = (int)floor(XMVectorGetY(playerPosition));
-    int playerZ = (int)floor(XMVectorGetZ(playerPosition));
+    XMVECTOR cameraPosition = player.getCamera()->getPosition();
+    int cameraX = (int)floor(XMVectorGetX(cameraPosition));
+    int cameraY = (int)floor(XMVectorGetY(cameraPosition));
+    int cameraZ = (int)floor(XMVectorGetZ(cameraPosition));
 
     const int checkRange = 4;
 
@@ -23,18 +23,17 @@ int WorldManager::getBlockIndex(Segment ray)
     float currentTime = 1.f; // [0-1] Represents how far along the ray the collision occured
 
     // Only bother checking around the player in a small radius for performance reasons
-    for (int x = Utility::max(playerX - checkRange, 0); x < Utility::min(playerX + checkRange, width); x++)
+    for (int x = Utility::max(cameraX - checkRange, 0); x <= Utility::min(cameraX + checkRange, width - 1); x++)
     {
-        for (int y = Utility::max(playerY - checkRange, 0); y < Utility::min(playerY + checkRange, height); y++)
+        for (int y = Utility::max(cameraY - checkRange, 0); y <= Utility::min(cameraY + checkRange, height - 1); y++)
         {
-            for (int z = Utility::max(playerZ - checkRange, 0); z < Utility::min(playerZ + checkRange, depth); z++)
+            for (int z = Utility::max(cameraZ - checkRange, 0); z <= Utility::min(cameraZ + checkRange, depth - 1); z++)
             {
                 // Make sure there's a block here
-                std::unique_ptr<Block>& block = getBlock(x, y, z);
-                if (!block) continue;
+                if (getBlock(x, y, z) == nullptr) continue;
 
                 // Re-use a single block object moved to the current position to save memory
-                blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 0.f));
+                blockObject->setPosition(XMVectorSet((float)x, (float)y, (float)z, 1.f));
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
                 {
@@ -122,7 +121,7 @@ void WorldManager::handleCharacterCollision(Character& character)
             {
                 if (getBlock(x, y, z) == nullptr) continue;
 
-                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 0.f);
+                XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 1.f);
                 blockObject->setPosition(blockPosition);
                 Hit hit = blockObject->testIntersection(character);
                 if (hit.hit)
@@ -150,7 +149,7 @@ void WorldManager::handleCharacterCollision(Character& character)
 
     if (XMVectorGetY(character.getPosition()) < -10.f)
     {
-        character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+        character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
         character.setVelocity(0.f);
     }
 }
@@ -233,14 +232,14 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     skybox.loadShaders(L"shaders/skyboxShaders.hlsl", device, skyboxInputElementDescriptions, ARRAYSIZE(skyboxInputElementDescriptions));
     skybox.initialiseVertexBuffer(device, immediateContext);
 
-    for (int i = 0; i < 10; i++)
+    /*for (int i = 0; i < 10; i++)
     {
         enemies.push_back(std::move(std::make_unique<Enemy>()));
-    }
+    }*/
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->initialise(device, immediateContext);
-        enemy->setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 0.f));
+        enemy->setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
     }
 
     ID3D11ShaderResourceView* texture = nullptr;

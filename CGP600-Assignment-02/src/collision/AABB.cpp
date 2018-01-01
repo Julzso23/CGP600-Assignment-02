@@ -95,23 +95,12 @@ Hit AABB::testIntersection(Segment segment, XMVECTOR padding) // Padding pads ou
     XMVECTOR scale = XMVectorSet(1.f / XMVectorGetX(segment.delta), 1.f / XMVectorGetY(segment.delta), 1.f / XMVectorGetZ(segment.delta), 0.f);
     XMVECTOR sign = XMVectorSet(Utility::sign(XMVectorGetX(scale)), Utility::sign(XMVectorGetY(scale)), Utility::sign(XMVectorGetZ(scale)), 0.f);
 
-    XMVECTOR nearTimes, farTimes;
+    XMVECTOR nearTimes = XMVectorZero();
+    XMVECTOR farTimes = XMVectorZero();
 
     nearTimes = (getCentre() - sign * (getHalf() + padding) - segment.position) * scale;
-    /*XMVectorSet(
-        (XMVectorGetX(getCentre()) - XMVectorGetX(sign) * (XMVectorGetX(getHalf()) + XMVectorGetX(padding)) - XMVectorGetX(segment.position)) * XMVectorGetX(scale),
-        (XMVectorGetY(getCentre()) - XMVectorGetY(sign) * (XMVectorGetY(getHalf()) + XMVectorGetY(padding)) - XMVectorGetY(segment.position)) * XMVectorGetY(scale),
-        (XMVectorGetZ(getCentre()) - XMVectorGetZ(sign) * (XMVectorGetZ(getHalf()) + XMVectorGetZ(padding)) - XMVectorGetZ(segment.position)) * XMVectorGetZ(scale),
-        0.f
-    );*/
 
     farTimes = (getCentre() + sign * (getHalf() + padding) - segment.position) * scale;
-    /*XMVectorSet(
-        (XMVectorGetX(getCentre()) + XMVectorGetX(sign) * (XMVectorGetX(getHalf()) + XMVectorGetX(padding)) - XMVectorGetX(segment.position)) * XMVectorGetX(scale),
-        (XMVectorGetY(getCentre()) + XMVectorGetY(sign) * (XMVectorGetY(getHalf()) + XMVectorGetY(padding)) - XMVectorGetY(segment.position)) * XMVectorGetY(scale),
-        (XMVectorGetZ(getCentre()) + XMVectorGetZ(sign) * (XMVectorGetZ(getHalf()) + XMVectorGetZ(padding)) - XMVectorGetZ(segment.position)) * XMVectorGetZ(scale),
-        0.f
-    );*/
 
     result.object = this;
 
@@ -124,7 +113,7 @@ Hit AABB::testIntersection(Segment segment, XMVECTOR padding) // Padding pads ou
     }
 
     float nearTime = Utility::max(XMVectorGetX(nearTimes), XMVectorGetY(nearTimes), XMVectorGetZ(nearTimes));
-    float farTime = Utility::min(XMVectorGetX(nearTimes), XMVectorGetY(nearTimes), XMVectorGetZ(nearTimes));
+    float farTime = Utility::min(XMVectorGetX(farTimes), XMVectorGetY(farTimes), XMVectorGetZ(farTimes));
 
     if (nearTime >= 1.f || farTime <= 0.f)
     {
