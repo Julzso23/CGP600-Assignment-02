@@ -40,8 +40,8 @@ class WorldManager
         Player player;
         std::vector<std::unique_ptr<Enemy>> enemies;
 
+        void blockRaytrace(Segment ray, int* blockIndexOut, Hit* hitOut);
         int getBlockIndex(int x, int y, int z);
-        int getBlockIndex(Segment ray);
         void removeBlock(int index);
         void buildInstanceBuffer();
         void handleCharacterCollision(Character& character);

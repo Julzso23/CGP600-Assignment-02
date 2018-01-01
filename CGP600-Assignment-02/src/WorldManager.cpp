@@ -4,13 +4,7 @@
 #include <random>
 #include <WICTextureLoader.h>
 
-int WorldManager::getBlockIndex(int x, int y, int z)
-{
-    return x + width * (y + height * z);
-}
-
-// Get the index of the first block intersecting a ray
-int WorldManager::getBlockIndex(Segment ray)
+void WorldManager::blockRaytrace(Segment ray, int* blockIndexOut, Hit* hitOut)
 {
     XMVECTOR cameraPosition = player.getCamera()->getPosition();
     int cameraX = (int)floor(XMVectorGetX(cameraPosition));
@@ -20,7 +14,9 @@ int WorldManager::getBlockIndex(Segment ray)
     const int checkRange = 4;
 
     int currentBlock = -1;
-    float currentTime = 1.f; // [0-1] Represents how far along the ray the collision occured
+    Hit currentHit;
+    currentHit.hit = false;
+    currentHit.time = 1.f;
 
     // Only bother checking around the player in a small radius for performance reasons
     for (int x = Utility::max(cameraX - checkRange, 0); x <= Utility::min(cameraX + checkRange, width - 1); x++)
@@ -37,17 +33,30 @@ int WorldManager::getBlockIndex(Segment ray)
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
                 {
-                    if (hit.time < currentTime)
+                    if (hit.time < currentHit.time)
                     {
-                        currentTime = hit.time;
+                        currentHit = hit;
                         currentBlock = getBlockIndex(x, y, z);
+                        currentHit.position = XMVectorSet((float)x, (float)y, (float)z, 1.f);
                     }
                 }
             }
         }
     }
 
-    return currentBlock;
+    if (blockIndexOut)
+    {
+        *blockIndexOut = currentBlock;
+    }
+    if (hitOut)
+    {
+        *hitOut = currentHit;
+    }
+}
+
+int WorldManager::getBlockIndex(int x, int y, int z)
+{
+    return x + width * (y + height * z);
 }
 
 void WorldManager::removeBlock(int index)
@@ -191,7 +200,8 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     player.initialise(windowHandle);
     player.setBreakBlockFunction([&](Segment ray)
     {
-        int index = getBlockIndex(ray);
+        int index;
+        blockRaytrace(ray, &index, nullptr);
         if (index != -1)
         {
             removeBlock(index);
@@ -200,6 +210,19 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     });
     player.setPlaceBlockFunction([&](Segment ray)
     {
+        Hit hit;
+        blockRaytrace(ray, nullptr, &hit);
+        if (hit.hit)
+        {
+            XMVECTOR newPosition = hit.position + hit.normal;
+            if (XMVectorGetX(newPosition) >= 0.f && XMVectorGetX(newPosition) < (float)width &&
+                XMVectorGetY(newPosition) >= 0.f && XMVectorGetY(newPosition) < (float)height &&
+                XMVectorGetZ(newPosition) >= 0.f && XMVectorGetZ(newPosition) < (float)depth)
+            {
+                addBlock((int)floor(XMVectorGetX(newPosition)), (int)floor(XMVectorGetY(newPosition)), (int)floor(XMVectorGetZ(newPosition)), { 0 });
+                buildInstanceBuffer();
+            }
+        }
     });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
 
