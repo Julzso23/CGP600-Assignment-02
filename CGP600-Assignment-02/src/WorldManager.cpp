@@ -255,10 +255,10 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     skybox.loadShaders(L"shaders/skyboxShaders.hlsl", device, skyboxInputElementDescriptions, ARRAYSIZE(skyboxInputElementDescriptions));
     skybox.initialiseVertexBuffer(device, immediateContext);
 
-    /*for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
         enemies.push_back(std::move(std::make_unique<Enemy>()));
-    }*/
+    }
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->initialise(device, immediateContext);
