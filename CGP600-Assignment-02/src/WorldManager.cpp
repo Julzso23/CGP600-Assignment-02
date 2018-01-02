@@ -7,6 +7,8 @@
 void WorldManager::blockRaytrace(Segment ray, int* blockIndexOut, Hit* hitOut)
 {
     XMVECTOR cameraPosition = player.getCamera()->getPosition();
+
+    // Get approximate block coordinate of the camera
     int cameraX = (int)floor(XMVectorGetX(cameraPosition));
     int cameraY = (int)floor(XMVectorGetY(cameraPosition));
     int cameraZ = (int)floor(XMVectorGetZ(cameraPosition));
@@ -33,6 +35,7 @@ void WorldManager::blockRaytrace(Segment ray, int* blockIndexOut, Hit* hitOut)
                 Hit hit = blockObject->testIntersection(ray);
                 if (hit.hit)
                 {
+                    // If this block is closer than the previous result
                     if (hit.time < currentHit.time)
                     {
                         currentHit = hit;
@@ -104,10 +107,12 @@ void WorldManager::buildInstanceBuffer()
     bufferDescription.ByteWidth = sizeof(BlockInstance) * (UINT)instances.size();
     bufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
+    // Make a reference to the instance array
     D3D11_SUBRESOURCE_DATA instanceData;
     ZeroMemory(&instanceData, sizeof(instanceData));
     instanceData.pSysMem = instances.data();
 
+    // Create the buffer
     device->CreateBuffer(&bufferDescription, &instanceData, &instanceBuffer);
 }
 
@@ -116,21 +121,27 @@ void WorldManager::handleCharacterCollision(Character& character)
     const int checkRange = 2;
 
     XMVECTOR characterPosition = character.getPosition();
+
+    // Get approximate block coordinate of the character
     int characterX = (int)floor(XMVectorGetX(characterPosition));
     int characterY = (int)floor(XMVectorGetY(characterPosition));
     int characterZ = (int)floor(XMVectorGetZ(characterPosition));
 
     XMVECTOR hitDelta = XMVectorZero();
 
+    // Only check in an area around the character for performance reasons
     for (int x = Utility::max(characterX - checkRange, 0); x < Utility::min(characterX + checkRange, width); x++)
     {
         for (int y = Utility::max(characterY - checkRange, 0); y < Utility::min(characterY + checkRange, height); y++)
         {
             for (int z = Utility::max(characterZ - checkRange, 0); z < Utility::min(characterZ + checkRange, depth); z++)
             {
+                // Make sure the block exists
                 if (getBlock(x, y, z) == nullptr) continue;
 
                 XMVECTOR blockPosition = XMVectorSet((float)x, (float)y, (float)z, 1.f);
+
+                // Re-use the block object for memory efficiency
                 blockObject->setPosition(blockPosition);
                 Hit hit = blockObject->testIntersection(character);
                 if (hit.hit)
@@ -140,8 +151,10 @@ void WorldManager::handleCharacterCollision(Character& character)
                     if (XMVectorGetY(hit.delta) != 0.f)
                     {
                         XMVECTOR difference = XMVectorAbs(character.getPosition() - blockPosition);
-                        if (XMVectorGetX(difference) < XMVectorGetX(character.getSize()) - 0.01f && XMVectorGetZ(difference) < XMVectorGetZ(character.getSize()) - 0.01f)
+                        // Stop characters from jumping up sheer cliff faces
+                        if (XMVectorGetX(difference) < XMVectorGetX(character.getSize()) - 0.001f && XMVectorGetZ(difference) < XMVectorGetZ(character.getSize()) - 0.001f)
                         {
+                            // If the block is under the character, then it's grounded
                             if (XMVectorGetY(hit.delta) > 0.f)
                             {
                                 character.setGrounded(true);
@@ -154,10 +167,13 @@ void WorldManager::handleCharacterCollision(Character& character)
         }
     }
 
+    // Move the character out of any intersecting blocks
     character.move(hitDelta);
 
+    // If the character fell out of the world
     if (XMVectorGetY(character.getPosition()) < -10.f)
     {
+        // Reset their position and velocity
         character.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
         character.setVelocity(0.f);
     }
@@ -171,6 +187,7 @@ WorldManager::WorldManager() :
     directionalLight.setColour(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f));
     directionalLight.setAmbientColour(XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f));
 
+    // Setup the point light
     pointLight.setColour(XMFLOAT4(0.8f, 0.8f, 0.8f, 1.f));
     pointLight.setPosition(XMVectorZero());
     pointLight.setFalloff(30.f);
@@ -178,6 +195,7 @@ WorldManager::WorldManager() :
 
 WorldManager::~WorldManager()
 {
+    // Cleanup the textures
     for (ID3D11ShaderResourceView* texture : textures)
     {
         texture->Release();
@@ -188,20 +206,22 @@ WorldManager::~WorldManager()
 
 void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11DeviceContext* immediateContext)
 {
+    // Keep references to the device and device context
     this->device = device;
     this->immediateContext = immediateContext;
 
+    // Make a sprite batch and font
     spriteBatch = std::make_unique<SpriteBatch>(immediateContext);
     spriteFont = std::make_unique<SpriteFont>(device, L"fonts/comicsans.spritefont");
 
-    perlinNoiseCompute.initialise(device, immediateContext, std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
-    perlinNoiseCompute.run();
-
+    // Setup the player
     player.initialise(windowHandle);
     player.setBreakBlockFunction([&](Segment ray)
     {
         int index;
+        // Look for a block to break
         blockRaytrace(ray, &index, nullptr);
+        // If there was a block in reach
         if (index != -1)
         {
             removeBlock(index);
@@ -211,9 +231,12 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     player.setPlaceBlockFunction([&](Segment ray)
     {
         Hit hit;
+        // Look for a block to build on
         blockRaytrace(ray, nullptr, &hit);
+        // If there was a block in reach
         if (hit.hit)
         {
+            // Check if there's space in the world
             XMVECTOR newPosition = hit.position + hit.normal;
             if (XMVectorGetX(newPosition) >= 0.f && XMVectorGetX(newPosition) < (float)width &&
                 XMVectorGetY(newPosition) >= 0.f && XMVectorGetY(newPosition) < (float)height &&
@@ -226,9 +249,11 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     });
     player.setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
 
+    // Set the point light as a child in the hierarchy
     player.addChild(&pointLight);
     pointLight.setLocalPosition(XMVectorSet(0.f, 1.f, 0.f, 1.f));
 
+    // Initialise the block object
     blockObject = std::make_unique<BlockObject>(device, immediateContext);
     D3D11_INPUT_ELEMENT_DESC blockInputElementDescriptions[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -242,6 +267,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     };
     blockObject->getMesh()->loadShaders(L"shaders/blockShaders.hlsl", device, blockInputElementDescriptions, ARRAYSIZE(blockInputElementDescriptions));
 
+    // Initialise the skybox
     skybox.loadFromFile("models/skybox.obj");
     skybox.loadTexture(device, L"textures/clouds-albedo.png", L"textures/clouds-normal.png");
     D3D11_INPUT_ELEMENT_DESC skyboxInputElementDescriptions[] = {
@@ -255,6 +281,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     skybox.loadShaders(L"shaders/skyboxShaders.hlsl", device, skyboxInputElementDescriptions, ARRAYSIZE(skyboxInputElementDescriptions));
     skybox.initialiseVertexBuffer(device, immediateContext);
 
+    // Create 10 enemies
     for (int i = 0; i < 10; i++)
     {
         enemies.push_back(std::move(std::make_unique<Enemy>()));
@@ -265,6 +292,7 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
         enemy->setPosition(XMVectorSet((float)width / 2.f, (float)height + 2.f, (float)depth / 2.f, 1.f));
     }
 
+    // Create the textures for the blocks
     ID3D11ShaderResourceView* texture = nullptr;
 
     CreateWICTextureFromFile(device, immediateContext, L"textures/dirt-albedo.png", NULL, &texture);
@@ -276,16 +304,22 @@ void WorldManager::initialise(HWND* windowHandle, ID3D11Device* device, ID3D11De
     CreateWICTextureFromFile(device, immediateContext, L"textures/grass-normal.png", NULL, &texture);
     textures.push_back(texture);
 
+    // Generate block values using the compute shader
+    perlinNoiseCompute.initialise(device, immediateContext, std::uniform_int_distribution<int>(0, 999999999)(std::random_device()));
+    perlinNoiseCompute.run();
+
     std::vector<bool> blockValues = perlinNoiseCompute.getBlockValues();
 
     for (std::size_t i = 0; i < blocks.size(); i++)
     {
+        // If there should be a block in this position
         if (blockValues[i])
         {
             blocks[i] = std::make_unique<Block>(Block{ 0 });
         }
     }
 
+    // Hollow out the world for performance reasons
     std::vector<int> toRemove;
 
     for (int x = 1; x < width - 1; x++)
@@ -345,8 +379,10 @@ void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& cons
 {
     std::lock_guard<std::mutex> guard(mutex);
 
+    // Use the block shaders
     blockObject->getMesh()->setShaders(immediateContext);
 
+    // Set constant buffers
     VertexConstantBuffer vertexConstantBufferValue = {
         player.getCamera()->getViewMatrix(),
         directionalLight.getAmbientColour(),
@@ -377,19 +413,24 @@ void WorldManager::renderFrame(float deltaTime, std::vector<ID3D11Buffer*>& cons
         instanceBuffer
     };
 
+    // Draw the blocks
     immediateContext->IASetVertexBuffers(0, 2, buffers, strides, offsets);
     immediateContext->DrawInstanced(vertexCount, (UINT)instances.size(), 0, 0);
 
+    // Draw the enemies
     for (std::unique_ptr<Enemy>& enemy : enemies)
     {
         enemy->draw(immediateContext, constantBuffers, vertexConstantBufferValue);
     }
 
+    // Draw the skybox
     skybox.draw(immediateContext, constantBuffers, vertexConstantBufferValue);
 
-    // Render frame rate
+    // Render UI
     spriteBatch->Begin();
+    // Frame rate
     spriteFont->DrawString(spriteBatch.get(), (std::to_wstring((int)floor(1.f / deltaTime)) + L" fps").c_str(), XMFLOAT2(10.f, 10.f));
+    // Controls
     spriteFont->DrawString(spriteBatch.get(), L"W A S D to move", XMFLOAT2(10.f, 30.f));
     spriteFont->DrawString(spriteBatch.get(), L"Hold shift while moving to sprint", XMFLOAT2(10.f, 50.f));
     spriteFont->DrawString(spriteBatch.get(), L"Space to jump", XMFLOAT2(10.f, 70.f));
@@ -412,6 +453,7 @@ void WorldManager::update(float deltaTime)
 
         handleCharacterCollision(*enemy);
 
+        // Enemy to enemy collision
         for (std::unique_ptr<Enemy>& otherEnemy : enemies)
         {
             Hit hit = enemy->testIntersection(*otherEnemy);
@@ -423,16 +465,19 @@ void WorldManager::update(float deltaTime)
             }
         }
 
+        // Enemy to player collision
         Hit hit = enemy->testIntersection(player);
         if (hit.hit)
         {
             hit.delta = XMVectorSetY(hit.delta, 0.f);
             player.move(hit.delta / 2.f);
             enemy->move(-hit.delta / 2.f);
+            // Throw the player in the air
             player.setVelocity(5.f);
         }
     }
 
+    // Set the skybox to follow the player
     skybox.setPosition(player.getPosition());
 }
 
