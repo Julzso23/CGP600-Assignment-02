@@ -1,4 +1,5 @@
 #include "Window.hpp"
+#include "UnitTests.hpp"
 #include <stdio.h>
 #include <thread>
 
@@ -9,6 +10,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
     AllocConsole(); // Create the console
     FILE* file;
     freopen_s(&file, "CONOUT$", "wb", stdout); // Pipe stdout into the console
+
+    UnitTests::runTests();
 #endif
 
     Window window;

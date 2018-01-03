@@ -135,6 +135,7 @@
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PointLight.cpp" />
     <ClCompile Include="src\Transformable.cpp" />
+    <ClCompile Include="src\UnitTests.cpp" />
     <ClCompile Include="src\Utility.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\WorldManager.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="include\Player.hpp" />
     <ClInclude Include="include\PointLight.hpp" />
     <ClInclude Include="include\Transformable.hpp" />
+    <ClInclude Include="include\UnitTests.hpp" />
     <ClInclude Include="include\Utility.hpp" />
     <ClInclude Include="include\Vertex.hpp" />
     <ClInclude Include="include\Window.hpp" />
